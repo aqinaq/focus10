@@ -4,7 +4,7 @@ import {
   timingSafeEqual,
 } from 'node:crypto'
 import { promisify } from 'node:util'
-import { db, purgeExpiredSessions } from './db.js'
+import { one, pool, purgeExpiredSessions } from './db.js'
 
 const scrypt = promisify(scryptCallback)
 
@@ -33,35 +33,33 @@ export async function verifyPassword(password, stored) {
   return expected.length === actual.length && timingSafeEqual(expected, actual)
 }
 
-export function createSession(userId) {
+export async function createSession(userId) {
   const token = randomBytes(32).toString('hex')
 
-  db.prepare(
+  await pool.query(
     `INSERT INTO sessions (token, user_id, expires_at)
-     VALUES (?, ?, datetime('now', ?))`,
-  ).run(token, userId, `+${SESSION_DAYS} days`)
+     VALUES ($1, $2, now() + ($3 || ' days')::interval)`,
+    [token, userId, String(SESSION_DAYS)],
+  )
 
   return token
 }
 
-export function destroySession(token) {
-  if (token) db.prepare('DELETE FROM sessions WHERE token = ?').run(token)
+export async function destroySession(token) {
+  if (token) await pool.query('DELETE FROM sessions WHERE token = $1', [token])
 }
 
-export function userForToken(token) {
+export async function userForToken(token) {
   if (!token) return null
 
-  purgeExpiredSessions()
+  await purgeExpiredSessions()
 
-  return (
-    db
-      .prepare(
-        `SELECT u.id, u.name, u.email, u.plan, u.created_at
-           FROM sessions s
-           JOIN users u ON u.id = s.user_id
-          WHERE s.token = ? AND s.expires_at > datetime('now')`,
-      )
-      .get(token) ?? null
+  return one(
+    `SELECT u.id, u.name, u.email, u.plan, u.created_at
+       FROM sessions s
+       JOIN users u ON u.id = s.user_id
+      WHERE s.token = $1 AND s.expires_at > now()`,
+    [token],
   )
 }
 
@@ -74,13 +72,17 @@ export const cookieOptions = {
 }
 
 /** Қорғалған маршруттарға арналған middleware. */
-export function requireAuth(req, res, next) {
-  const user = userForToken(req.cookies?.[COOKIE_NAME])
+export async function requireAuth(req, res, next) {
+  try {
+    const user = await userForToken(req.cookies?.[COOKIE_NAME])
 
-  if (!user) {
-    return res.status(401).json({ error: 'Кіру қажет.' })
+    if (!user) {
+      return res.status(401).json({ error: 'Кіру қажет.' })
+    }
+
+    req.user = user
+    next()
+  } catch (error) {
+    next(error)
   }
-
-  req.user = user
-  next()
 }

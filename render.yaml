@@ -1,28 +1,11 @@
 # Render Blueprint. render.com → New → Blueprint → осы репоны таңда,
 # қалғанын Render осы файлдан оқиды. Әр git push сайын қайта деплой болады.
 #
-# ЕСКЕРТУ — дерек тұрақтылығы туралы
-# Бұл конфигурация тегін жоспарға бапталған. Render тегін web service-ке
-# тұрақты диск бермейді (https://render.com/docs/disks — диск тек ақылы
-# жоспарларда). Сондықтан SQLite файлы контейнердің уақытша жүйесінде тұрады:
-#   • қайта деплой жасалса,
-#   • сервис белсенсіздіктен ұйқыға кетіп қайта оянса,
-# барлық қолданушы, тапсырма және уақыт жазбасы өшеді.
-# Демо сілтеме ретінде жарайды, нағыз қолданысқа жарамайды.
+# Дерек Supabase-тегі (немесе кез келген) Postgres-те тұрады, сондықтан
+# тегін жоспар жетеді әрі дерек деплой сайын жоғалмайды. Диск қажет емес.
 #
-# Дерек сақталуы керек болса екі жол бар:
-#
-# 1) Ақылы жоспар + диск (~$7/ай). plan-ды starter етіп, мынаны қос:
-#      envVars: - key: DB_FILE
-#                 value: /var/data/focusflow.db
-#      disk:
-#        name: focusflow-data
-#        mountPath: /var/data
-#        sizeGB: 1
-#
-# 2) SQLite орнына тегін Postgres (Neon/Supabase). Сонда тегін жоспар да
-#    жеткілікті болады, бірақ server/db.js пен SQL сұраныстарды қайта жазу
-#    керек.
+# DATABASE_URL — құпия мән, сондықтан бұл файлда жазылмайды. Render
+# панелінде Environment бөлімінде қолмен қоясың (sync: false соны білдіреді).
 services:
   - type: web
     name: focusflow
@@ -37,3 +20,9 @@ services:
         value: production
       - key: NODE_VERSION
         value: '24'
+      # «Бүгін» мен «осы апта» осы белдеумен есептеледі
+      - key: APP_TZ
+        value: Asia/Almaty
+      # Supabase → Project Settings → Database → Connection string
+      - key: DATABASE_URL
+        sync: false

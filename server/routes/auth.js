@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { db, seedWorkspace } from '../db.js'
+import { one, pool, seedWorkspace } from '../db.js'
 import {
   COOKIE_NAME,
   cookieOptions,
@@ -36,31 +36,32 @@ router.post('/register', authLimit, async (req, res, next) => {
       return res.status(400).json({ error: 'Форманы тексер.', errors })
     }
 
-    const taken = db
-      .prepare('SELECT id FROM users WHERE email = ?')
-      .get(email)
+    const passwordHash = await hashPassword(password)
 
-    if (taken) {
-      return res.status(409).json({
-        error: 'Бұл email тіркелген.',
-        errors: { email: 'Бұл email тіркеліп қойған.' },
-      })
+    // Бірегейлікті бөлек SELECT-пен емес, индекске сүйеніп тексереміз —
+    // әйтпесе екі сұраныс арасында бәсеке пайда болады (race condition).
+    let user
+    try {
+      user = await one(
+        `INSERT INTO users (name, email, password_hash, plan)
+         VALUES ($1, $2, $3, $4)
+         RETURNING id, name, email, plan`,
+        [name, email, passwordHash, plan],
+      )
+    } catch (error) {
+      if (error.code === '23505') {
+        return res.status(409).json({
+          error: 'Бұл email тіркелген.',
+          errors: { email: 'Бұл email тіркеліп қойған.' },
+        })
+      }
+      throw error
     }
 
-    const passwordHash = await hashPassword(password)
-    const result = db
-      .prepare(
-        'INSERT INTO users (name, email, password_hash, plan) VALUES (?, ?, ?, ?)',
-      )
-      .run(name, email, passwordHash, plan)
+    await seedWorkspace(user.id)
 
-    const userId = Number(result.lastInsertRowid)
-    seedWorkspace(userId)
-
-    res.cookie(COOKIE_NAME, createSession(userId), cookieOptions)
-    res.status(201).json({
-      user: { id: userId, name, email, plan },
-    })
+    res.cookie(COOKIE_NAME, await createSession(user.id), cookieOptions)
+    res.status(201).json({ user })
   } catch (error) {
     next(error)
   }
@@ -71,9 +72,9 @@ router.post('/login', authLimit, async (req, res, next) => {
     const email = String(req.body?.email ?? '').trim()
     const password = String(req.body?.password ?? '')
 
-    const row = db
-      .prepare('SELECT * FROM users WHERE email = ?')
-      .get(email)
+    const row = await one('SELECT * FROM users WHERE lower(email) = lower($1)', [
+      email,
+    ])
 
     // Email бар-жоғын сыртқа шығармау үшін екі жағдайда да бірдей жауап
     const valid = row && (await verifyPassword(password, row.password_hash))
@@ -82,7 +83,7 @@ router.post('/login', authLimit, async (req, res, next) => {
       return res.status(401).json({ error: 'Email не құпиясөз қате.' })
     }
 
-    res.cookie(COOKIE_NAME, createSession(row.id), cookieOptions)
+    res.cookie(COOKIE_NAME, await createSession(row.id), cookieOptions)
     res.json({
       user: { id: row.id, name: row.name, email: row.email, plan: row.plan },
     })
@@ -91,10 +92,14 @@ router.post('/login', authLimit, async (req, res, next) => {
   }
 })
 
-router.post('/logout', (req, res) => {
-  destroySession(req.cookies?.[COOKIE_NAME])
-  res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: undefined })
-  res.status(204).end()
+router.post('/logout', async (req, res, next) => {
+  try {
+    await destroySession(req.cookies?.[COOKIE_NAME])
+    res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: undefined })
+    res.status(204).end()
+  } catch (error) {
+    next(error)
+  }
 })
 
 router.get('/me', requireAuth, (req, res) => {
@@ -113,9 +118,9 @@ router.patch('/password', requireAuth, authLimit, async (req, res, next) => {
       })
     }
 
-    const row = db
-      .prepare('SELECT password_hash FROM users WHERE id = ?')
-      .get(req.user.id)
+    const row = await one('SELECT password_hash FROM users WHERE id = $1', [
+      req.user.id,
+    ])
 
     if (!(await verifyPassword(current, row.password_hash))) {
       return res.status(403).json({
@@ -124,15 +129,15 @@ router.patch('/password', requireAuth, authLimit, async (req, res, next) => {
       })
     }
 
-    db.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(
+    await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [
       await hashPassword(next_),
       req.user.id,
-    )
+    ])
 
     // Құпиясөз ауысқанда барлық құрылғыдан шығарамыз да, ағымдағы
     // браузерге жаңа сессия береміз — ұрланған сессия жарамсыз болады.
-    db.prepare('DELETE FROM sessions WHERE user_id = ?').run(req.user.id)
-    res.cookie(COOKIE_NAME, createSession(req.user.id), cookieOptions)
+    await pool.query('DELETE FROM sessions WHERE user_id = $1', [req.user.id])
+    res.cookie(COOKIE_NAME, await createSession(req.user.id), cookieOptions)
 
     res.status(204).end()
   } catch (error) {
@@ -144,9 +149,9 @@ router.delete('/account', requireAuth, authLimit, async (req, res, next) => {
   try {
     const password = String(req.body?.password ?? '')
 
-    const row = db
-      .prepare('SELECT password_hash FROM users WHERE id = ?')
-      .get(req.user.id)
+    const row = await one('SELECT password_hash FROM users WHERE id = $1', [
+      req.user.id,
+    ])
 
     if (!(await verifyPassword(password, row.password_hash))) {
       return res.status(403).json({ error: 'Құпиясөз қате.' })
@@ -154,7 +159,7 @@ router.delete('/account', requireAuth, authLimit, async (req, res, next) => {
 
     // Жобалар, тапсырмалар, уақыт жазбалары мен сессиялар
     // ON DELETE CASCADE арқылы бірге өшеді
-    db.prepare('DELETE FROM users WHERE id = ?').run(req.user.id)
+    await pool.query('DELETE FROM users WHERE id = $1', [req.user.id])
 
     res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: undefined })
     res.status(204).end()

@@ -1,24 +1,51 @@
-import { mkdtempSync, rmSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { createServer } from 'node:net'
+import { PGlite } from '@electric-sql/pglite'
+import { PGLiteSocketServer } from '@electric-sql/pglite-socket'
 
 /**
- * Әр тест файлы өз уақытша SQLite файлымен жұмыс істейді — тесттер
- * бір-бірінің дерегін көрмейді, әрі әзірлеушінің қорына тимейді.
+ * `node --test` әр тест файлын бөлек процесте қатар жүргізеді, сондықтан
+ * портты тұрақты санмен беруге болмайды — екі файл бір портқа таласады.
+ * Бос портты ОЖ-дан сұраймыз.
+ */
+function freePort() {
+  return new Promise((resolve, reject) => {
+    const probe = createServer()
+    probe.unref()
+    probe.on('error', reject)
+    probe.listen(0, '127.0.0.1', () => {
+      const { port } = probe.address()
+      probe.close(() => resolve(port))
+    })
+  })
+}
+
+/**
+ * Тесттер нағыз Postgres-ке қарсы жүреді: PGlite — Postgres-тің WebAssembly-ге
+ * компиляцияланған нұсқасы (эмулятор емес). Ол TCP сокет ашады, ал `pg`
+ * клиенті оған продакшндағыдай қосылады — яғни SQL диалектіндегі
+ * айырмашылықтар тестте де көрінеді.
+ *
+ * Әр тест файлы өз данасын көтереді, сондықтан бір-бірінің дерегін көрмейді.
  */
 export async function startTestServer() {
-  const dir = mkdtempSync(join(tmpdir(), 'focusflow-test-'))
+  const port = await freePort()
 
-  process.env.DB_FILE = join(dir, 'test.db')
+  const pglite = await PGlite.create()
+  const socket = new PGLiteSocketServer({ db: pglite, port, host: '127.0.0.1' })
+  await socket.start()
+
+  process.env.DATABASE_URL = `postgres://postgres@127.0.0.1:${port}/postgres`
   process.env.LOG_LEVEL = 'silent'
   process.env.NODE_ENV = 'test'
   // Тесттердің бәрі бір IP-ден жүреді — лимитті көтереміз. Лимиттің өзін
   // тексеретін тест оны уақытша қайта төмендетеді.
   process.env.RATE_LIMIT_MAX = '10000'
 
-  // db.js импорт кезінде DB_FILE-ды оқиды, сондықтан динамикалық импорт
+  // db.js импорт кезінде DATABASE_URL-ды оқиды, сондықтан динамикалық импорт
   const { createApp } = await import('../app.js')
-  const { db } = await import('../db.js')
+  const dbModule = await import('../db.js')
+
+  await dbModule.migrate()
 
   const server = createApp().listen(0)
   await new Promise((resolve) => server.once('listening', resolve))
@@ -27,11 +54,13 @@ export async function startTestServer() {
 
   return {
     base,
-    db,
+    /** Тестте тікелей SQL жүргізу үшін. */
+    query: dbModule.query,
     async close() {
       await new Promise((resolve) => server.close(resolve))
-      db.close()
-      rmSync(dir, { recursive: true, force: true })
+      await dbModule.closePool().catch(() => {})
+      await socket.stop()
+      await pglite.close()
     },
   }
 }
@@ -62,7 +91,9 @@ export function createClient(base) {
       const setCookie = response.headers.get('set-cookie')
       if (setCookie) cookie = setCookie.split(';')[0]
 
-      if (raw) return { status: response.status, text: await response.text(), response }
+      if (raw) {
+        return { status: response.status, text: await response.text(), response }
+      }
 
       const text = await response.text()
       let data = null

@@ -35,12 +35,13 @@ describe('Тіркелу', () => {
     const client = createClient(server.base)
     const { payload } = await registerUser(client)
 
-    const row = server.db
-      .prepare('SELECT password_hash FROM users WHERE email = ?')
-      .get(payload.email)
+    const { rows } = await server.query(
+      'SELECT password_hash FROM users WHERE lower(email) = lower($1)',
+      [payload.email],
+    )
 
-    assert.notEqual(row.password_hash, payload.password)
-    assert.match(row.password_hash, /^[0-9a-f]{32}:[0-9a-f]{128}$/)
+    assert.notEqual(rows[0].password_hash, payload.password)
+    assert.match(rows[0].password_hash, /^[0-9a-f]{32}:[0-9a-f]{128}$/)
   })
 
   test('жарамсыз дерек 400 және өріс қателерін қайтарады', async () => {
@@ -168,9 +169,10 @@ describe('Сессия', () => {
     await registerUser(client)
 
     const token = client.cookie.split('=')[1]
-    server.db
-      .prepare(`UPDATE sessions SET expires_at = datetime('now', '-1 day') WHERE token = ?`)
-      .run(token)
+    await server.query(
+      `UPDATE sessions SET expires_at = now() - interval '1 day' WHERE token = $1`,
+      [token],
+    )
 
     assert.equal((await client.request('/api/auth/me')).status, 401)
   })
@@ -228,16 +230,15 @@ describe('Аккаунт', () => {
     })
     assert.equal(deleted.status, 204)
 
-    const counts = ['users', 'tasks', 'projects', 'sessions'].map(
-      (table) =>
-        server.db
-          .prepare(
-            `SELECT COUNT(*) AS n FROM ${table} WHERE ${
-              table === 'users' ? 'id' : 'user_id'
-            } = ?`,
-          )
-          .get(userId).n,
-    )
+    const counts = []
+    for (const table of ['users', 'tasks', 'projects', 'sessions']) {
+      const column = table === 'users' ? 'id' : 'user_id'
+      const { rows } = await server.query(
+        `SELECT COUNT(*)::int AS n FROM ${table} WHERE ${column} = $1`,
+        [userId],
+      )
+      counts.push(rows[0].n)
+    }
 
     assert.deepEqual(counts, [0, 0, 0, 0])
   })

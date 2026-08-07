@@ -172,13 +172,12 @@ describe('Таймер', () => {
       body: { task_id: data.tasks[1].id },
     })
 
-    const running = server.db
-      .prepare(
-        'SELECT COUNT(*) AS n FROM time_entries WHERE user_id = ? AND ended_at IS NULL',
-      )
-      .get(user.id).n
+    const { rows } = await server.query(
+      'SELECT COUNT(*)::int AS n FROM time_entries WHERE user_id = $1 AND ended_at IS NULL',
+      [user.id],
+    )
 
-    assert.equal(running, 1)
+    assert.equal(rows[0].n, 1)
     assert.equal((await client.request('/api/timer')).data.active.task_id, data.tasks[1].id)
   })
 
@@ -222,12 +221,11 @@ describe('Таймер', () => {
     await client.request('/api/timer/start', { method: 'POST', body: { task_id: taskId } })
 
     // Тесті 1 секунд күттірмеу үшін басталу уақытын артқа жылжытамыз
-    server.db
-      .prepare(
-        `UPDATE time_entries SET started_at = datetime('now', '-90 seconds')
-          WHERE user_id = ? AND ended_at IS NULL`,
-      )
-      .run(user.id)
+    await server.query(
+      `UPDATE time_entries SET started_at = now() - interval '90 seconds'
+        WHERE user_id = $1 AND ended_at IS NULL`,
+      [user.id],
+    )
 
     await client.request('/api/timer/stop', { method: 'POST' })
 
@@ -256,12 +254,11 @@ describe('Есептер', () => {
       method: 'POST',
       body: { task_id: data.tasks[0].id },
     })
-    server.db
-      .prepare(
-        `UPDATE time_entries SET started_at = datetime('now', '-120 seconds')
-          WHERE user_id = ? AND ended_at IS NULL`,
-      )
-      .run(user.id)
+    await server.query(
+      `UPDATE time_entries SET started_at = now() - interval '120 seconds'
+        WHERE user_id = $1 AND ended_at IS NULL`,
+      [user.id],
+    )
     await client.request('/api/timer/stop', { method: 'POST' })
 
     const { data: report } = await client.request('/api/reports/week')
@@ -283,12 +280,11 @@ describe('Есептер', () => {
       method: 'POST',
       body: { task_id: created.task.id },
     })
-    server.db
-      .prepare(
-        `UPDATE time_entries SET started_at = datetime('now', '-60 seconds')
-          WHERE user_id = ? AND ended_at IS NULL`,
-      )
-      .run(user.id)
+    await server.query(
+      `UPDATE time_entries SET started_at = now() - interval '60 seconds'
+        WHERE user_id = $1 AND ended_at IS NULL`,
+      [user.id],
+    )
     await client.request('/api/timer/stop', { method: 'POST' })
 
     // response.text() BOM-ды стандарт бойынша алып тастайды, сондықтан

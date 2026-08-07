@@ -1,19 +1,26 @@
 import { createApp } from './app.js'
-import { db, purgeExpiredSessions } from './db.js'
+import { closePool, migrate, purgeExpiredSessions } from './db.js'
 
 const PORT = Number(process.env.PORT ?? 3080)
+
+// Схема дайын болмай тұрып сұраныс қабылдаудың мағынасы жоқ
+await migrate()
 
 const server = createApp().listen(PORT, () => {
   console.log(`FocusFlow API → http://localhost:${PORT}`)
 })
 
 // Мерзімі өткен сессияларды сағат сайын тазалап отырамыз
-const sweeper = setInterval(purgeExpiredSessions, 60 * 60 * 1000)
+const sweeper = setInterval(() => {
+  purgeExpiredSessions().catch((error) =>
+    console.error('Сессияларды тазалау сәтсіз:', error),
+  )
+}, 60 * 60 * 1000)
 sweeper.unref()
 
 /**
  * Деплой кезінде процесс SIGTERM алады. Жүріп жатқан сұраныстарды аяқтап,
- * SQLite-ты дұрыс жабамыз — әйтпесе WAL файлы жартылай жазылып қалуы мүмкін.
+ * Postgres пулын дұрыс жабамыз.
  */
 let shuttingDown = false
 
@@ -29,9 +36,9 @@ function shutdown(signal) {
   }, 10_000)
   force.unref()
 
-  server.close(() => {
+  server.close(async () => {
     clearTimeout(force)
-    db.close()
+    await closePool().catch(() => {})
     console.log('Сервер тоқтады.')
     process.exit(0)
   })

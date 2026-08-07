@@ -1,100 +1,152 @@
-import { DatabaseSync } from 'node:sqlite'
-import { mkdirSync } from 'node:fs'
-import { dirname, resolve } from 'node:path'
+import pg from 'pg'
 
-const file = process.env.DB_FILE
-  ? resolve(process.env.DB_FILE)
-  : resolve(process.cwd(), 'server/data/focusflow.db')
+const { Pool, types } = pg
 
-mkdirSync(dirname(file), { recursive: true })
+/**
+ * Postgres (Supabase, Neon немесе жергілікті) — байланыс жолы DATABASE_URL
+ * айнымалысынан алынады. Құпиясөз кодта да, репозиторийде де сақталмайды.
+ */
+const connectionString = process.env.DATABASE_URL
 
-export const db = new DatabaseSync(file)
+if (!connectionString) {
+  throw new Error(
+    'DATABASE_URL қойылмаған. .env файлын жаса (үлгісі — .env.example) ' +
+      'немесе хостингтің панелінде айнымалыны қос.',
+  )
+}
 
-// Сыртқы кілттер SQLite-та әдепкіде өшулі — қосып қоямыз, әйтпесе
-// ON DELETE CASCADE жұмыс істемейді.
-db.exec('PRAGMA foreign_keys = ON')
-db.exec('PRAGMA journal_mode = WAL')
+const isLocal = /@(localhost|127\.0\.0\.1)/.test(connectionString)
 
-db.exec(`
+// «Бүгін», «осы апта» деген ұғым қай уақыт белдеуімен есептелетіні.
+// Онсыз есеп серверде UTC бойынша, ал қолданушыда жергілікті уақытпен
+// саналып, күндер жылжып кетеді.
+export const APP_TZ = process.env.APP_TZ ?? 'Asia/Almaty'
+
+// bigint (COUNT, SUM) әдепкіде жол болып келеді — JSON-да "90" болып
+// шықпауы үшін санға айналдырамыз.
+types.setTypeParser(types.builtins.INT8, (value) => Number(value))
+
+export const pool = new Pool({
+  connectionString,
+  // Supabase/Neon SSL талап етеді; жергілікті қорға ол қажет емес
+  ssl: isLocal ? false : { rejectUnauthorized: false },
+  max: Number(process.env.PG_POOL_MAX ?? 10),
+  idleTimeoutMillis: 30_000,
+  connectionTimeoutMillis: 10_000,
+})
+
+pool.on('connect', (client) => {
+  client.query(`SET TIME ZONE '${APP_TZ}'`)
+})
+
+pool.on('error', (error) => {
+  console.error('Postgres пулында күтпеген қате:', error)
+})
+
+/** Қысқа көмекші: query(text, params) → { rows, rowCount }. */
+export const query = (text, params) => pool.query(text, params)
+
+/** Бір жол қайтарады немесе null. */
+export async function one(text, params) {
+  const { rows } = await pool.query(text, params)
+  return rows[0] ?? null
+}
+
+const SCHEMA = `
   CREATE TABLE IF NOT EXISTS users (
-    id            INTEGER PRIMARY KEY AUTOINCREMENT,
-    name          TEXT    NOT NULL,
-    email         TEXT    NOT NULL UNIQUE COLLATE NOCASE,
-    password_hash TEXT    NOT NULL,
-    plan          TEXT    NOT NULL DEFAULT 'Free',
-    created_at    TEXT    NOT NULL DEFAULT (datetime('now'))
+    id            INTEGER     PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name          TEXT        NOT NULL,
+    email         TEXT        NOT NULL,
+    password_hash TEXT        NOT NULL,
+    plan          TEXT        NOT NULL DEFAULT 'Free',
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
   );
 
+  -- citext кез келген жерде қолжетімді емес, сондықтан регистрге тәуелсіз
+  -- бірегейлікті индекспен қамтамасыз етеміз
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email_lower ON users (lower(email));
+
   CREATE TABLE IF NOT EXISTS sessions (
-    token      TEXT    PRIMARY KEY,
-    user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    created_at TEXT    NOT NULL DEFAULT (datetime('now')),
-    expires_at TEXT    NOT NULL
+    token      TEXT        PRIMARY KEY,
+    user_id    INTEGER     NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    expires_at TIMESTAMPTZ NOT NULL
   );
 
   CREATE TABLE IF NOT EXISTS projects (
-    id         INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    name       TEXT    NOT NULL,
-    created_at TEXT    NOT NULL DEFAULT (datetime('now'))
+    id         INTEGER     PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    user_id    INTEGER     NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name       TEXT        NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
   );
 
   CREATE TABLE IF NOT EXISTS tasks (
-    id           INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id      INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    project_id   INTEGER REFERENCES projects(id) ON DELETE SET NULL,
-    title        TEXT    NOT NULL,
-    done         INTEGER NOT NULL DEFAULT 0,
-    created_at   TEXT    NOT NULL DEFAULT (datetime('now')),
-    completed_at TEXT
+    id           INTEGER     PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    user_id      INTEGER     NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    project_id   INTEGER     REFERENCES projects(id) ON DELETE SET NULL,
+    title        TEXT        NOT NULL,
+    done         BOOLEAN     NOT NULL DEFAULT false,
+    created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+    completed_at TIMESTAMPTZ
   );
 
   CREATE TABLE IF NOT EXISTS time_entries (
-    id         INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    task_id    INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
-    started_at TEXT    NOT NULL DEFAULT (datetime('now')),
-    ended_at   TEXT,
+    id         INTEGER     PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    user_id    INTEGER     NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    task_id    INTEGER     NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    started_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    ended_at   TIMESTAMPTZ,
     seconds    INTEGER
   );
 
-  CREATE INDEX IF NOT EXISTS idx_sessions_user   ON sessions(user_id);
-  CREATE INDEX IF NOT EXISTS idx_tasks_user      ON tasks(user_id);
-  CREATE INDEX IF NOT EXISTS idx_projects_user   ON projects(user_id);
-  CREATE INDEX IF NOT EXISTS idx_entries_user    ON time_entries(user_id, started_at);
+  CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
+  CREATE INDEX IF NOT EXISTS idx_tasks_user    ON tasks(user_id);
+  CREATE INDEX IF NOT EXISTS idx_projects_user ON projects(user_id);
+  CREATE INDEX IF NOT EXISTS idx_entries_user  ON time_entries(user_id, started_at);
 
   -- Бір қолданушыда бір ғана жүріп тұрған таймер болуы керек. Бұл шартты
   -- қосымша кодта емес, деректер қорының өзінде бекітеміз.
   CREATE UNIQUE INDEX IF NOT EXISTS idx_entries_one_running
     ON time_entries(user_id) WHERE ended_at IS NULL;
-`)
+`
+
+/** Схеманы құрады. Сервер тыңдамас бұрын шақырылуы керек. */
+export async function migrate() {
+  await pool.query(SCHEMA)
+}
 
 /** Мерзімі өткен сессияларды тазалау. */
-export function purgeExpiredSessions() {
-  db.prepare(`DELETE FROM sessions WHERE expires_at <= datetime('now')`).run()
+export async function purgeExpiredSessions() {
+  await pool.query('DELETE FROM sessions WHERE expires_at <= now()')
 }
 
 /**
  * Жаңа қолданушыға бос емес dashboard беру үшін бастапқы жоба мен
  * бірнеше тапсырма құрамыз.
  */
-export function seedWorkspace(userId) {
-  const project = db
-    .prepare('INSERT INTO projects (user_id, name) VALUES (?, ?)')
-    .run(userId, 'Бірінші жобам')
-
-  const projectId = project.lastInsertRowid
-  const insertTask = db.prepare(
-    'INSERT INTO tasks (user_id, project_id, title) VALUES (?, ?, ?)',
+export async function seedWorkspace(userId) {
+  const project = await one(
+    'INSERT INTO projects (user_id, name) VALUES ($1, $2) RETURNING id',
+    [userId, 'Бірінші жобам'],
   )
 
-  for (const title of [
-    'FocusFlow-мен танысу',
-    'Бірінші тапсырманы қосу',
-    'Таймерді іске қосып көру',
-  ]) {
-    insertTask.run(userId, projectId, title)
-  }
+  await pool.query(
+    `INSERT INTO tasks (user_id, project_id, title)
+     SELECT $1, $2, title FROM unnest($3::text[]) AS title`,
+    [
+      userId,
+      project.id,
+      [
+        'FocusFlow-мен танысу',
+        'Бірінші тапсырманы қосу',
+        'Таймерді іске қосып көру',
+      ],
+    ],
+  )
 
-  return projectId
+  return project.id
+}
+
+export async function closePool() {
+  await pool.end()
 }
