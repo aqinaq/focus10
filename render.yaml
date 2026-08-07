@@ -1,0 +1,37 @@
+# Render үшін дайын конфигурация. Репозиторийді қосқанда Render осы файлды
+# өзі тауып, барлық баптауды содан алады.
+#
+# ЕСКЕРТУ — неге plan: starter (ақылы), тегін емес?
+# SQLite дерегі файлда тұрады, ал файл деплой сайын жоғалмауы үшін тұрақты
+# диск керек. Render дискіні тек ақылы жоспарларға береді
+# (https://render.com/docs/disks). Тегін web service-те disk блогы жұмыс
+# істемейді: әр деплойда және ұйқыдан оянған сайын барлық қолданушы мен
+# тапсырма өшіп отырады.
+#
+# Тегін деплой керек болса екі жол бар:
+#   1. Төмендегі disk блогын және DB_FILE-ды алып тастап, plan: free қою —
+#      бірақ дерек тұрақсыз болады (демо ретінде ғана жарайды).
+#   2. SQLite орнына тегін Postgres (Neon/Supabase) қосу — сонда тегін
+#      web service жетеді. Ол server/db.js пен сұраныстарды қайта жазуды
+#      талап етеді.
+services:
+  - type: web
+    name: focusflow
+    runtime: node
+    plan: starter
+    region: frankfurt
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: '24'
+      # SQLite файлы тұрақты дискіде жатуы керек
+      - key: DB_FILE
+        value: /var/data/focusflow.db
+    disk:
+      name: focusflow-data
+      mountPath: /var/data
+      sizeGB: 1

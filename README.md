@@ -64,49 +64,66 @@ npm run lint
 ```
 src/
 ├── components/
-│   ├── Navbar.jsx        логотип + меню + Get Started (мобильде hamburger)
-│   ├── Hero.jsx          H1, subtext, 2 CTA, әлеуметтік дәлел
-│   ├── AppMockup.jsx     Hero ішіндегі «өнім скриншоты» (таза CSS-пен салынған)
-│   ├── Features.jsx      4 карта, 2×2 grid
-│   ├── Pricing.jsx       Free / Pro (Popular) / Team + ай/жыл ауыстырғышы
-│   ├── Testimonials.jsx  3 пікір, аватар + аты + компания
-│   ├── CTA.jsx           түсті фон, бір батырма
-│   ├── Footer.jsx        логотип, 4 баған, соцсеть, copyright
-│   ├── Modal.jsx         қайта қолданылатын модаль (Esc, фокус тұзағы)
-│   ├── AuthModal.jsx     тіркелу / кіру формасы
-│   ├── DemoModal.jsx     4 қадамдық өнім туры
-│   └── ToastStack.jsx    хабарламалар
-│   ├── dashboard/
-│   │   ├── WeekChart.jsx апталық диаграмма (нақты деректен)
-│   │   └── TaskRow.jsx   тапсырма жолы: белгілеу / таймер / жою
-│   └── RequireAuth.jsx   қорғалған маршрут
+│   ├── Navbar.jsx           логотип + меню + Get Started (мобильде hamburger)
+│   ├── Hero.jsx             H1, 2 CTA, нағыз скриншот, тексерілетін фактілер
+│   ├── Features.jsx         4 карта — тек жұмыс істейтін мүмкіндіктер
+│   ├── Pricing.jsx          Free / Pro / Team + ай-жыл ауыстырғышы
+│   ├── UseCases.jsx         «Кімге арналған» сценарийлері (жалған пікір емес)
+│   ├── CTA.jsx              түсті фон, бір батырма
+│   ├── Footer.jsx           тек шынымен бар сілтемелер
+│   ├── Modal.jsx            қайта қолданылатын модаль (Esc, фокус тұзағы)
+│   ├── AuthModal.jsx        тіркелу / кіру формасы
+│   ├── DemoModal.jsx        скриншотты қадаммен ерекшелейтін тур
+│   ├── ToastStack.jsx       хабарламалар
+│   ├── ErrorBoundary.jsx    рендер қатесінде ақ экран болмауы үшін
+│   ├── SkipLink.jsx         пернетақтамен мазмұнға өту
+│   ├── RequireAuth.jsx      қорғалған маршрут
+│   └── dashboard/
+│       ├── WeekChart.jsx    апталық диаграмма (нақты деректен)
+│       ├── TaskRow.jsx      тапсырма жолы: белгілеу / өңдеу / таймер / жою
+│       ├── ProjectsPanel.jsx жоба қосу және жою
+│       └── UserMenu.jsx     аватар мәзірі: параметрлер, шығу
 ├── pages/
-│   ├── Landing.jsx       лендинг секциялары
-│   └── Dashboard.jsx     қолданбаның өзі
+│   ├── Landing.jsx          лендинг секциялары
+│   ├── Dashboard.jsx        қолданбаның өзі
+│   ├── Settings.jsx         аккаунт, CSV жүктеу, құпиясөз, жою
+│   └── NotFound.jsx         404
 ├── context/
-│   ├── uiContext.js      контекст + useUI() hook
-│   ├── UIProvider.jsx    модаль/toast күйін ұстайды
-│   ├── authContext.js    useAuth() hook
-│   └── AuthProvider.jsx  сессияны қалпына келтіру, register/login/logout
+│   ├── uiContext.js         контекст + useUI() hook
+│   ├── UIProvider.jsx       модаль/toast күйін ұстайды
+│   ├── authContext.js       useAuth() hook
+│   └── AuthProvider.jsx     сессияны қалпына келтіру, register/login/logout
 ├── lib/
-│   ├── api.js            API клиенті (ApiError, өріс қателері)
-│   └── format.js         уақытты пішімдеу
+│   ├── api.js               API клиенті (ApiError, өріс қателері)
+│   └── format.js            уақытты пішімдеу
 ├── hooks/
-│   └── useScrollLock.js  бет скроллын құлыптау (қабаттарды санайды)
-├── App.jsx               роутинг
-└── index.css             Tailwind импорты + дизайн токендер
+│   └── useScrollLock.js     бет скроллын құлыптау (қабаттарды санайды)
+├── App.jsx                  роутинг
+└── index.css                Tailwind импорты + дизайн токендер
 
 server/
-├── index.js              Express bootstrap, продакшнда dist/-ті де береді
-├── db.js                 SQLite схемасы + seed
-├── auth.js               scrypt хеш, сессия, requireAuth
-├── rateLimit.js          auth маршруттарын қорғау
-└── routes/
-    ├── auth.js           register / login / logout / me
-    ├── projects.js       жобалар
-    ├── tasks.js          тапсырма CRUD
-    ├── timer.js          таймер қосу / тоқтату
-    └── reports.js        апталық есеп
+├── app.js                   Express қолданбасын құрады (тесттер де қолданады)
+├── index.js                 тыңдау + graceful shutdown
+├── db.js                    SQLite схемасы + seed
+├── auth.js                  scrypt хеш, сессия, requireAuth
+├── rateLimit.js             auth маршруттарын қорғау
+├── lib/csv.js               RFC 4180 CSV (Excel үшін BOM-мен)
+├── middleware/
+│   ├── security.js          CSP, X-Frame-Options, HSTS
+│   └── logger.js            сұраныс логы
+├── routes/
+│   ├── auth.js              register / login / logout / me / password / account
+│   ├── projects.js          жобалар
+│   ├── tasks.js             тапсырма CRUD
+│   ├── timer.js             таймер қосу / тоқтату
+│   └── reports.js           апталық есеп + CSV экспорт
+└── test/
+    ├── helpers.js           уақытша SQLite-пен сервер көтеру
+    ├── auth.test.js         тіркелу, кіру, сессия, аккаунт
+    └── app.test.js          тапсырма, оқшаулану, таймер, есеп, қауіпсіздік
+
+public/
+└── app-dashboard.png        қолданбадан түсірілген нағыз скриншот
 ```
 
 ## Батырмалар не істейді
