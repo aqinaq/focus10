@@ -12,7 +12,11 @@ services:
     runtime: node
     plan: free
     region: frankfurt
-    buildCommand: npm ci && npm run build
+    # --include=dev міндетті: төменде NODE_ENV=production тұр, ал ол кезде
+    # `npm ci` devDependency-лерді өткізіп жібереді. Vite мен Tailwind — дәл
+    # сол devDependency-лер, сондықтан онсыз build «vite: command not found»
+    # деп құлайды.
+    buildCommand: npm ci --include=dev && npm run build
     startCommand: npm start
     healthCheckPath: /api/health
     envVars:
