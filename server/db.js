@@ -35,10 +35,10 @@ export const pool = new Pool({
   connectionTimeoutMillis: 10_000,
 })
 
-pool.on('connect', (client) => {
-  client.query(`SET TIME ZONE '${APP_TZ}'`)
-})
-
+// Байланысқа `SET TIME ZONE` жіберілмейді әрі оның қажеті жоқ: уақыт белдеуі
+// есеп сұраныстарына параметр болып беріледі. Сессия күйіне сүйенсек,
+// Supabase-тің transaction режиміндегі pooler-і оны сақтамай, «бүгін» деген
+// ұғым кездейсоқ жылжып кетер еді.
 pool.on('error', (error) => {
   console.error('Postgres пулында күтпеген қате:', error)
 })
