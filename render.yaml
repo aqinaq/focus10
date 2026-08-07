@@ -1,24 +1,33 @@
-# Render үшін дайын конфигурация. Репозиторийді қосқанда Render осы файлды
-# өзі тауып, барлық баптауды содан алады.
+# Render Blueprint. render.com → New → Blueprint → осы репоны таңда,
+# қалғанын Render осы файлдан оқиды. Әр git push сайын қайта деплой болады.
 #
-# ЕСКЕРТУ — неге plan: starter (ақылы), тегін емес?
-# SQLite дерегі файлда тұрады, ал файл деплой сайын жоғалмауы үшін тұрақты
-# диск керек. Render дискіні тек ақылы жоспарларға береді
-# (https://render.com/docs/disks). Тегін web service-те disk блогы жұмыс
-# істемейді: әр деплойда және ұйқыдан оянған сайын барлық қолданушы мен
-# тапсырма өшіп отырады.
+# ЕСКЕРТУ — дерек тұрақтылығы туралы
+# Бұл конфигурация тегін жоспарға бапталған. Render тегін web service-ке
+# тұрақты диск бермейді (https://render.com/docs/disks — диск тек ақылы
+# жоспарларда). Сондықтан SQLite файлы контейнердің уақытша жүйесінде тұрады:
+#   • қайта деплой жасалса,
+#   • сервис белсенсіздіктен ұйқыға кетіп қайта оянса,
+# барлық қолданушы, тапсырма және уақыт жазбасы өшеді.
+# Демо сілтеме ретінде жарайды, нағыз қолданысқа жарамайды.
 #
-# Тегін деплой керек болса екі жол бар:
-#   1. Төмендегі disk блогын және DB_FILE-ды алып тастап, plan: free қою —
-#      бірақ дерек тұрақсыз болады (демо ретінде ғана жарайды).
-#   2. SQLite орнына тегін Postgres (Neon/Supabase) қосу — сонда тегін
-#      web service жетеді. Ол server/db.js пен сұраныстарды қайта жазуды
-#      талап етеді.
+# Дерек сақталуы керек болса екі жол бар:
+#
+# 1) Ақылы жоспар + диск (~$7/ай). plan-ды starter етіп, мынаны қос:
+#      envVars: - key: DB_FILE
+#                 value: /var/data/focusflow.db
+#      disk:
+#        name: focusflow-data
+#        mountPath: /var/data
+#        sizeGB: 1
+#
+# 2) SQLite орнына тегін Postgres (Neon/Supabase). Сонда тегін жоспар да
+#    жеткілікті болады, бірақ server/db.js пен SQL сұраныстарды қайта жазу
+#    керек.
 services:
   - type: web
     name: focusflow
     runtime: node
-    plan: starter
+    plan: free
     region: frankfurt
     buildCommand: npm ci && npm run build
     startCommand: npm start
@@ -28,10 +37,3 @@ services:
         value: production
       - key: NODE_VERSION
         value: '24'
-      # SQLite файлы тұрақты дискіде жатуы керек
-      - key: DB_FILE
-        value: /var/data/focusflow.db
-    disk:
-      name: focusflow-data
-      mountPath: /var/data
-      sizeGB: 1
