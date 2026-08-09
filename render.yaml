@@ -11,7 +11,10 @@ services:
     name: focus10
     runtime: node
     plan: free
-    region: frankfurt
+    # Supabase жобасы ap-northeast-1 (Токио) аймағында тұр. Singapore —
+    # Render-дің соған ең жақын тегін аймағы: app ↔ дерекқор ~70 мс.
+    # Frankfurt болса, әр сұраныс Токиоға 230 мс жүріп қайтар еді.
+    region: singapore
     # --include=dev міндетті: төменде NODE_ENV=production тұр, ал ол кезде
     # `npm ci` devDependency-лерді өткізіп жібереді. Vite мен Tailwind — дәл
     # сол devDependency-лер, сондықтан онсыз build «vite: command not found»
