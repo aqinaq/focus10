@@ -2,23 +2,21 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Download, Loader2, Plus, Settings, Square, Timer } from 'lucide-react'
 import { api } from '../lib/api'
-import { formatClock, formatDuration } from '../lib/format'
 import { useAuth } from '../context/authContext'
 import { useUI } from '../context/uiContext'
+import { useI18n } from '../i18n/i18nContext'
 import WeekChart from '../components/dashboard/WeekChart'
 import TaskRow from '../components/dashboard/TaskRow'
 import ProjectsPanel from '../components/dashboard/ProjectsPanel'
 import UserMenu from '../components/dashboard/UserMenu'
+import LanguageSwitcher from '../components/LanguageSwitcher'
 
-const FILTERS = [
-  { id: 'open', label: 'Ашық' },
-  { id: 'done', label: 'Аяқталған' },
-  { id: 'all', label: 'Барлығы' },
-]
+const FILTERS = ['open', 'done', 'all']
 
 export default function Dashboard() {
   const { user } = useAuth()
   const { notify } = useUI()
+  const { t, formatClock, formatDuration } = useI18n()
 
   const [tasks, setTasks] = useState([])
   const [projects, setProjects] = useState([])
@@ -155,9 +153,9 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-dvh items-center justify-center">
         <Loader2 className="size-6 animate-spin text-brand-600" />
-        <span className="sr-only">Жүктелуде…</span>
+        <span className="sr-only">{t('common.loading')}</span>
       </div>
     )
   }
@@ -167,34 +165,46 @@ export default function Dashboard() {
   const weekSeconds = (report?.week_seconds ?? 0) + (active ? elapsed : 0)
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-dvh bg-slate-50">
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
-        <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-6">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:h-20 sm:px-6">
           <Link to="/" className="flex items-center gap-2.5">
             <span className="flex size-9 items-center justify-center rounded-xl bg-brand-600">
               <Timer className="size-5 text-white" strokeWidth={2.5} />
             </span>
             <span className="text-lg font-semibold tracking-tight text-slate-900">
-              FocusFlow
+              Focus10
             </span>
           </Link>
 
-          <UserMenu user={user} />
+          <div className="flex items-center gap-3 sm:gap-4">
+            {/* Жасыруды сыртқы div атқарады: LanguageSwitcher-дің өз
+                `inline-flex` класы `hidden`-мен қақтығысады да, мобильде
+                бәрібір көрініп қалады. Мұнда тілді UserMenu ішінен ауыстырады. */}
+            <div className="hidden sm:block">
+              <LanguageSwitcher />
+            </div>
+            <UserMenu user={user} />
+          </div>
         </div>
       </header>
 
-      <main id="main" className="mx-auto max-w-6xl px-6 py-10">
-        {/* Жүріп тұрған таймер */}
+      <main id="main" className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
+        {/* Жүріп тұрған таймер. Мобильде тік жайғасады: жоғарыда тапсырма аты,
+            астында сағат пен тоқтату батырмасы — батырма кең әрі саусаққа
+            ыңғайлы жерде тұрады. */}
         {active ? (
-          <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-brand-600 p-6 text-white">
+          <div className="flex flex-col gap-4 rounded-2xl bg-brand-600 p-5 text-white sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:p-6">
             <div className="min-w-0">
-              <p className="text-xs font-medium text-brand-200">Таймер жүріп тұр</p>
+              <p className="text-xs font-medium text-brand-200">
+                {t('dashboard.timerRunning')}
+              </p>
               <p className="mt-1 truncate text-lg font-semibold">{active.task_title}</p>
               {active.project_name && (
-                <p className="text-sm text-brand-200">{active.project_name}</p>
+                <p className="truncate text-sm text-brand-200">{active.project_name}</p>
               )}
             </div>
-            <div className="flex items-center gap-5">
+            <div className="flex items-center justify-between gap-4 sm:gap-5">
               <span
                 className="text-3xl font-semibold tabular-nums"
                 role="timer"
@@ -206,81 +216,94 @@ export default function Dashboard() {
                 type="button"
                 onClick={() => mutate(() => api.stopTimer(), { reloadTiming: true })}
                 disabled={busy}
-                className="flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-50 disabled:opacity-60"
+                className="flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-brand-700 transition-colors hover:bg-brand-50 disabled:opacity-60 sm:py-2.5"
               >
                 <Square className="size-3.5 fill-current" />
-                Тоқтату
+                {t('dashboard.stop')}
               </button>
             </div>
           </div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500">
-            Таймер тоқтап тұр. Тапсырманың жанындағы ▶ батырмасын бас.
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-5 text-center text-sm text-pretty text-slate-500 sm:p-6">
+            {t('dashboard.timerIdle')}
           </div>
         )}
 
-        {/* Статистика */}
-        <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-3">
-          <Stat label="Бүгін" value={formatDuration(todaySeconds)} />
-          <Stat label="Осы апта" value={formatDuration(weekSeconds)} />
-          <Stat label="Ашық тапсырма" value={String(openCount)} />
+        {/* Статистика. Мобильде үшеуін тігінен тізсек, тапсырмалар экраннан
+            тым төмен кетеді — сондықтан екі бағанға сыйғызамыз. */}
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-6 sm:grid-cols-3 sm:gap-6">
+          <Stat label={t('dashboard.today')} value={formatDuration(todaySeconds)} />
+          <Stat label={t('dashboard.thisWeek')} value={formatDuration(weekSeconds)} />
+          <Stat wide label={t('dashboard.openTasks')} value={String(openCount)} />
         </div>
 
         {/* items-start — әйтпесе қысқа карта көрші бағанның биіктігіне
             созылып, астында бос орын қалады */}
-        <div className="mt-6 grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
+        <div className="mt-4 grid grid-cols-1 items-start gap-4 sm:mt-6 sm:gap-6 lg:grid-cols-3">
           {/* Тапсырмалар */}
-          <section className="rounded-2xl border border-slate-200 bg-white p-6 lg:col-span-2">
-            <h2 className="text-lg font-semibold text-slate-900">Тапсырмалар</h2>
+          <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 lg:col-span-2">
+            <h2 className="text-lg font-semibold text-slate-900">
+              {t('dashboard.tasks')}
+            </h2>
 
             <form onSubmit={addTask} className="mt-4 flex flex-col gap-3 sm:flex-row">
               <input
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
-                placeholder="Жаңа тапсырма…"
+                placeholder={t('dashboard.newTaskPlaceholder')}
                 maxLength={200}
-                aria-label="Жаңа тапсырма"
-                className="min-w-0 flex-1 rounded-xl border border-slate-300 px-4 py-2.5 text-sm outline-none transition-colors placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+                enterKeyHint="done"
+                aria-label={t('dashboard.newTask')}
+                className="min-w-0 flex-1 rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none transition-colors placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 sm:py-2.5"
               />
-              <select
-                value={projectId}
-                onChange={(event) => setProjectId(event.target.value)}
-                aria-label="Жоба"
-                className="rounded-xl border border-slate-300 px-3 py-2.5 text-sm text-slate-700 outline-none focus:border-brand-500"
-              >
-                <option value="">Жобасыз</option>
-                {projects.map((project) => (
-                  <option key={project.id} value={project.id}>
-                    {project.name}
-                  </option>
-                ))}
-              </select>
-              <button
-                type="submit"
-                disabled={busy || title.trim() === ''}
-                className="flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700 disabled:opacity-50"
-              >
-                <Plus className="size-4" />
-                Қосу
-              </button>
+              {/* Мобильде жоба мен «Қосу» бір жолда тұрады — үшеуін тік тізсек
+                  форма экранның жартысын алып кетеді. sm:contents — үлкен
+                  экранда бұл орауыш жоғалып, бәрі бір қатарға қайта тізіледі. */}
+              <div className="flex gap-3 sm:contents">
+                <select
+                  value={projectId}
+                  onChange={(event) => setProjectId(event.target.value)}
+                  aria-label={t('dashboard.project')}
+                  className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-3 text-sm text-slate-700 outline-none focus:border-brand-500 sm:flex-none sm:py-2.5"
+                >
+                  <option value="">{t('dashboard.noProject')}</option>
+                  {projects.map((project) => (
+                    <option key={project.id} value={project.id}>
+                      {project.name}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="submit"
+                  disabled={busy || title.trim() === ''}
+                  className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-brand-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-700 disabled:opacity-50 sm:py-2.5"
+                >
+                  <Plus className="size-4" />
+                  {t('dashboard.add')}
+                </button>
+              </div>
             </form>
 
             {/* Сүзгілер */}
             <div className="mt-5 flex flex-wrap items-center gap-3">
-              <div role="group" aria-label="Күй бойынша сүзгі" className="inline-flex rounded-full bg-slate-100 p-1">
-                {FILTERS.map((item) => (
+              <div
+                role="group"
+                aria-label={t('dashboard.statusFilter')}
+                className="inline-flex rounded-full bg-slate-100 p-1"
+              >
+                {FILTERS.map((id) => (
                   <button
-                    key={item.id}
+                    key={id}
                     type="button"
-                    onClick={() => setFilter(item.id)}
-                    aria-pressed={filter === item.id}
-                    className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
-                      filter === item.id
+                    onClick={() => setFilter(id)}
+                    aria-pressed={filter === id}
+                    className={`rounded-full px-4 py-2 text-xs font-semibold transition-colors sm:py-1.5 ${
+                      filter === id
                         ? 'bg-white text-slate-900 shadow-sm'
                         : 'text-slate-500 hover:text-slate-900'
                     }`}
                   >
-                    {item.label}
+                    {t(`dashboard.filters.${id}`)}
                   </button>
                 ))}
               </div>
@@ -288,11 +311,11 @@ export default function Dashboard() {
               <select
                 value={projectFilter}
                 onChange={(event) => setProjectFilter(event.target.value)}
-                aria-label="Жоба бойынша сүзгі"
-                className="rounded-full border border-slate-300 px-3 py-1.5 text-xs text-slate-700 outline-none focus:border-brand-500"
+                aria-label={t('dashboard.projectFilter')}
+                className="max-w-[45%] rounded-full border border-slate-300 px-3 py-2 text-xs text-slate-700 outline-none focus:border-brand-500 sm:max-w-none sm:py-1.5"
               >
-                <option value="all">Барлық жоба</option>
-                <option value="none">Жобасыз</option>
+                <option value="all">{t('dashboard.allProjects')}</option>
+                <option value="none">{t('dashboard.noProject')}</option>
                 {projects.map((project) => (
                   <option key={project.id} value={project.id}>
                     {project.name}
@@ -301,15 +324,15 @@ export default function Dashboard() {
               </select>
 
               <span className="ml-auto text-xs text-slate-400">
-                {visibleTasks.length} тапсырма
+                {t('dashboard.taskCount', { count: visibleTasks.length })}
               </span>
             </div>
 
             {visibleTasks.length === 0 ? (
               <p className="mt-8 text-center text-sm text-slate-500">
                 {tasks.length === 0
-                  ? 'Әзірге тапсырма жоқ. Жоғарыдан біреуін қос.'
-                  : 'Бұл сүзгіге сай тапсырма табылмады.'}
+                  ? t('dashboard.emptyAll')
+                  : t('dashboard.emptyFiltered')}
               </p>
             ) : (
               <ul className="mt-4 divide-y divide-slate-100 border-t border-slate-100">
@@ -361,15 +384,17 @@ export default function Dashboard() {
             )}
           </section>
 
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-4 sm:gap-6">
             {/* Есеп */}
-            <section className="rounded-2xl border border-slate-200 bg-white p-6">
+            <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
               <div className="flex items-center justify-between gap-4">
-                <h2 className="text-lg font-semibold text-slate-900">Осы апта</h2>
+                <h2 className="text-lg font-semibold text-slate-900">
+                  {t('dashboard.thisWeek')}
+                </h2>
                 <a
                   href="/api/reports/export.csv?range=month"
                   download
-                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 sm:py-1.5"
                 >
                   <Download className="size-3.5" />
                   CSV
@@ -379,16 +404,20 @@ export default function Dashboard() {
               <div className="mt-6">{report && <WeekChart days={report.days} />}</div>
 
               <h3 className="mt-8 text-sm font-semibold text-slate-900">
-                Жоба бойынша
+                {t('dashboard.byProject')}
               </h3>
               {report?.by_project.length ? (
                 <ul className="mt-3 space-y-2">
                   {report.by_project.map((row) => (
                     <li
-                      key={row.project}
+                      key={row.project ?? ''}
                       className="flex items-center justify-between text-sm"
                     >
-                      <span className="truncate text-slate-600">{row.project}</span>
+                      {/* Жобасы жоқ уақыт серверден `null` болып келеді —
+                          атауын аударма береді */}
+                      <span className="truncate text-slate-600">
+                        {row.project ?? t('dashboard.noProject')}
+                      </span>
                       <span className="shrink-0 tabular-nums text-slate-900">
                         {formatDuration(row.seconds)}
                       </span>
@@ -397,7 +426,7 @@ export default function Dashboard() {
                 </ul>
               ) : (
                 <p className="mt-3 text-sm text-slate-500">
-                  Осы аптада әлі уақыт есептелмеген.
+                  {t('dashboard.noTimeThisWeek')}
                 </p>
               )}
             </section>
@@ -426,13 +455,13 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <p className="mt-10 text-center text-xs text-slate-400">
+        <p className="mt-8 pb-[env(safe-area-inset-bottom)] text-center text-xs text-slate-400 sm:mt-10">
           <Link
             to="/app/settings"
-            className="inline-flex items-center gap-1.5 transition-colors hover:text-slate-600"
+            className="inline-flex items-center gap-1.5 py-2 transition-colors hover:text-slate-600"
           >
             <Settings className="size-3.5" />
-            Аккаунт параметрлері
+            {t('dashboard.accountSettings')}
           </Link>
         </p>
       </main>
@@ -440,11 +469,24 @@ export default function Dashboard() {
   )
 }
 
-function Stat({ label, value }) {
+/**
+ * `wide` — мобильде екі бағанды алып тұратын карта. Ондай карта тік
+ * жайғасса ішінде бос орын көп болып көрінеді, сондықтан телефонда
+ * тақырыбы мен мәні бір жолға тізіледі.
+ */
+function Stat({ label, value, wide = false }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6">
+    <div
+      className={`rounded-2xl border border-slate-200 bg-white p-4 sm:block sm:p-6 ${
+        wide ? 'col-span-2 flex items-center justify-between sm:col-span-1' : ''
+      }`}
+    >
       <p className="text-xs font-medium text-slate-400">{label}</p>
-      <p className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">
+      <p
+        className={`text-2xl font-semibold tracking-tight text-balance text-slate-900 sm:mt-2 sm:text-3xl ${
+          wide ? '' : 'mt-1.5'
+        }`}
+      >
         {value}
       </p>
     </div>

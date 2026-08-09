@@ -1,6 +1,7 @@
-import { formatDuration, weekdayLabel } from '../../lib/format'
+import { useI18n } from '../../i18n/i18nContext'
 
 export default function WeekChart({ days }) {
+  const { formatDuration, weekdayLabel } = useI18n()
   const peak = Math.max(...days.map((day) => day.seconds), 1)
 
   return (

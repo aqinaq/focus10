@@ -27,3 +27,6 @@ server/data/
 .env
 .env.local
 .pgdata
+
+# Claude Code жергілікті баптаулары
+.claude/

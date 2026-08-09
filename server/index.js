@@ -7,7 +7,7 @@ const PORT = Number(process.env.PORT ?? 3080)
 await migrate()
 
 const server = createApp().listen(PORT, () => {
-  console.log(`FocusFlow API → http://localhost:${PORT}`)
+  console.log(`Focus10 API → http://localhost:${PORT}`)
 })
 
 // Мерзімі өткен сессияларды сағат сайын тазалап отырамыз

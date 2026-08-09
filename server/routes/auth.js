@@ -14,7 +14,6 @@ import rateLimit from '../rateLimit.js'
 const router = Router()
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
-const PLANS = new Set(['Free', 'Pro', 'Team'])
 
 const authLimit = rateLimit({ windowMs: 60_000, max: 10 })
 
@@ -23,17 +22,16 @@ router.post('/register', authLimit, async (req, res, next) => {
     const name = String(req.body?.name ?? '').trim()
     const email = String(req.body?.email ?? '').trim()
     const password = String(req.body?.password ?? '')
-    const plan = PLANS.has(req.body?.plan) ? req.body.plan : 'Free'
 
     const errors = {}
-    if (name.length < 2) errors.name = 'Атыңды жаз (кемінде 2 таңба).'
-    if (!EMAIL_RE.test(email)) errors.email = 'Жарамды email енгіз.'
+    if (name.length < 2) errors.name = req.t('auth.nameTooShort')
+    if (!EMAIL_RE.test(email)) errors.email = req.t('auth.emailInvalid')
     if (password.length < 8) {
-      errors.password = 'Құпиясөз кемінде 8 таңба болуы керек.'
+      errors.password = req.t('auth.passwordTooShort')
     }
 
     if (Object.keys(errors).length > 0) {
-      return res.status(400).json({ error: 'Форманы тексер.', errors })
+      return res.status(400).json({ error: req.t('auth.checkForm'), errors })
     }
 
     const passwordHash = await hashPassword(password)
@@ -43,22 +41,22 @@ router.post('/register', authLimit, async (req, res, next) => {
     let user
     try {
       user = await one(
-        `INSERT INTO users (name, email, password_hash, plan)
-         VALUES ($1, $2, $3, $4)
-         RETURNING id, name, email, plan`,
-        [name, email, passwordHash, plan],
+        `INSERT INTO users (name, email, password_hash)
+         VALUES ($1, $2, $3)
+         RETURNING id, name, email`,
+        [name, email, passwordHash],
       )
     } catch (error) {
       if (error.code === '23505') {
         return res.status(409).json({
-          error: 'Бұл email тіркелген.',
-          errors: { email: 'Бұл email тіркеліп қойған.' },
+          error: req.t('auth.emailTaken'),
+          errors: { email: req.t('auth.emailTakenField') },
         })
       }
       throw error
     }
 
-    await seedWorkspace(user.id)
+    await seedWorkspace(user.id, req.lang)
 
     res.cookie(COOKIE_NAME, await createSession(user.id), cookieOptions)
     res.status(201).json({ user })
@@ -80,12 +78,12 @@ router.post('/login', authLimit, async (req, res, next) => {
     const valid = row && (await verifyPassword(password, row.password_hash))
 
     if (!valid) {
-      return res.status(401).json({ error: 'Email не құпиясөз қате.' })
+      return res.status(401).json({ error: req.t('auth.badCredentials') })
     }
 
     res.cookie(COOKIE_NAME, await createSession(row.id), cookieOptions)
     res.json({
-      user: { id: row.id, name: row.name, email: row.email, plan: row.plan },
+      user: { id: row.id, name: row.name, email: row.email },
     })
   } catch (error) {
     next(error)
@@ -113,8 +111,8 @@ router.patch('/password', requireAuth, authLimit, async (req, res, next) => {
 
     if (next_.length < 8) {
       return res.status(400).json({
-        error: 'Форманы тексер.',
-        errors: { new_password: 'Құпиясөз кемінде 8 таңба болуы керек.' },
+        error: req.t('auth.checkForm'),
+        errors: { new_password: req.t('auth.passwordTooShort') },
       })
     }
 
@@ -124,8 +122,8 @@ router.patch('/password', requireAuth, authLimit, async (req, res, next) => {
 
     if (!(await verifyPassword(current, row.password_hash))) {
       return res.status(403).json({
-        error: 'Ағымдағы құпиясөз қате.',
-        errors: { current_password: 'Ағымдағы құпиясөз қате.' },
+        error: req.t('auth.currentPasswordWrong'),
+        errors: { current_password: req.t('auth.currentPasswordWrong') },
       })
     }
 
@@ -154,7 +152,7 @@ router.delete('/account', requireAuth, authLimit, async (req, res, next) => {
     ])
 
     if (!(await verifyPassword(password, row.password_hash))) {
-      return res.status(403).json({ error: 'Құпиясөз қате.' })
+      return res.status(403).json({ error: req.t('auth.passwordWrong') })
     }
 
     // Жобалар, тапсырмалар, уақыт жазбалары мен сессиялар

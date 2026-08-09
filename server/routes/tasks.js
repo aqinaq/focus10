@@ -46,13 +46,13 @@ router.post('/', async (req, res, next) => {
     if (title.length < 1 || title.length > 200) {
       return res
         .status(400)
-        .json({ error: 'Тапсырма аты 1–200 таңба болуы керек.' })
+        .json({ error: req.t('task.titleLength') })
     }
 
     // Жоба шынымен осы қолданушыныкі ме — тексереміз
     if (projectId !== null) {
       if (!Number.isInteger(projectId)) {
-        return res.status(400).json({ error: 'Мұндай жоба жоқ.' })
+        return res.status(400).json({ error: req.t('project.unknown') })
       }
 
       const owned = await one(
@@ -60,7 +60,7 @@ router.post('/', async (req, res, next) => {
         [projectId, req.user.id],
       )
 
-      if (!owned) return res.status(400).json({ error: 'Мұндай жоба жоқ.' })
+      if (!owned) return res.status(400).json({ error: req.t('project.unknown') })
     }
 
     const created = await one(
@@ -78,7 +78,7 @@ router.patch('/:id', async (req, res, next) => {
   try {
     const id = Number(req.params.id)
     if (!Number.isInteger(id)) {
-      return res.status(404).json({ error: 'Тапсырма табылмады.' })
+      return res.status(404).json({ error: req.t('task.notFound') })
     }
 
     const existing = await one(
@@ -86,7 +86,7 @@ router.patch('/:id', async (req, res, next) => {
       [id, req.user.id],
     )
 
-    if (!existing) return res.status(404).json({ error: 'Тапсырма табылмады.' })
+    if (!existing) return res.status(404).json({ error: req.t('task.notFound') })
 
     const title =
       req.body?.title === undefined
@@ -96,7 +96,7 @@ router.patch('/:id', async (req, res, next) => {
     if (title.length < 1 || title.length > 200) {
       return res
         .status(400)
-        .json({ error: 'Тапсырма аты 1–200 таңба болуы керек.' })
+        .json({ error: req.t('task.titleLength') })
     }
 
     const done =
@@ -133,7 +133,7 @@ router.delete('/:id', async (req, res, next) => {
   try {
     const id = Number(req.params.id)
     if (!Number.isInteger(id)) {
-      return res.status(404).json({ error: 'Тапсырма табылмады.' })
+      return res.status(404).json({ error: req.t('task.notFound') })
     }
 
     const { rowCount } = await pool.query(
@@ -142,7 +142,7 @@ router.delete('/:id', async (req, res, next) => {
     )
 
     if (rowCount === 0) {
-      return res.status(404).json({ error: 'Тапсырма табылмады.' })
+      return res.status(404).json({ error: req.t('task.notFound') })
     }
 
     res.status(204).end()

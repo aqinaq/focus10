@@ -1,4 +1,5 @@
 import pg from 'pg'
+import { DEFAULT_LANG, translate } from './lib/i18n.js'
 
 const { Pool, types } = pg
 
@@ -58,7 +59,6 @@ const SCHEMA = `
     name          TEXT        NOT NULL,
     email         TEXT        NOT NULL,
     password_hash TEXT        NOT NULL,
-    plan          TEXT        NOT NULL DEFAULT 'Free',
     created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
   );
 
@@ -122,12 +122,15 @@ export async function purgeExpiredSessions() {
 
 /**
  * Жаңа қолданушыға бос емес dashboard беру үшін бастапқы жоба мен
- * бірнеше тапсырма құрамыз.
+ * бірнеше тапсырма құрамыз. Мәтіні — тіркелген кездегі тілде; бұл дерек
+ * қолданушыға тиесілі, сондықтан кейін тіл ауысса да өзгермейді.
  */
-export async function seedWorkspace(userId) {
+export async function seedWorkspace(userId, lang = DEFAULT_LANG) {
+  const t = (key) => translate(lang, key)
+
   const project = await one(
     'INSERT INTO projects (user_id, name) VALUES ($1, $2) RETURNING id',
-    [userId, 'Бірінші жобам'],
+    [userId, t('seed.project')],
   )
 
   await pool.query(
@@ -136,11 +139,7 @@ export async function seedWorkspace(userId) {
     [
       userId,
       project.id,
-      [
-        'FocusFlow-мен танысу',
-        'Бірінші тапсырманы қосу',
-        'Таймерді іске қосып көру',
-      ],
+      [t('seed.task1'), t('seed.task2'), t('seed.task3')],
     ],
   )
 

@@ -55,7 +55,7 @@ export async function userForToken(token) {
   await purgeExpiredSessions()
 
   return one(
-    `SELECT u.id, u.name, u.email, u.plan, u.created_at
+    `SELECT u.id, u.name, u.email, u.created_at
        FROM sessions s
        JOIN users u ON u.id = s.user_id
       WHERE s.token = $1 AND s.expires_at > now()`,
@@ -77,7 +77,7 @@ export async function requireAuth(req, res, next) {
     const user = await userForToken(req.cookies?.[COOKIE_NAME])
 
     if (!user) {
-      return res.status(401).json({ error: 'Кіру қажет.' })
+      return res.status(401).json({ error: req.t('auth.required') })
     }
 
     req.user = user

@@ -20,7 +20,6 @@ describe('Тіркелу', () => {
     assert.equal(status, 201)
     assert.ok(data.user.id)
     assert.match(client.cookie, /^ff_session=/)
-    assert.equal(data.user.plan, 'Free')
   })
 
   test('құпиясөз жауапта қайтарылмайды', async () => {
@@ -124,7 +123,7 @@ describe('Кіру', () => {
 
     const missing = await client.request('/api/auth/login', {
       method: 'POST',
-      body: { email: 'жоқ@focusflow.test', password: 'supersecret1' },
+      body: { email: 'жоқ@focus10.test', password: 'supersecret1' },
     })
     const wrong = await client.request('/api/auth/login', {
       method: 'POST',

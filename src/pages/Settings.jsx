@@ -4,21 +4,30 @@ import { ArrowLeft, Download, Loader2, Timer, TriangleAlert } from 'lucide-react
 import { api } from '../lib/api'
 import { useAuth } from '../context/authContext'
 import { useUI } from '../context/uiContext'
+import { useI18n } from '../i18n/i18nContext'
+import LanguageSwitcher from '../components/LanguageSwitcher'
+
+const RANGES = [
+  { range: 'week', key: 'settings.rangeWeek' },
+  { range: 'month', key: 'settings.rangeMonth' },
+  { range: 'all', key: 'settings.rangeAll' },
+]
 
 export default function Settings() {
   const { user } = useAuth()
   const { notify } = useUI()
+  const { t } = useI18n()
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-dvh bg-slate-50">
       <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex h-20 max-w-3xl items-center justify-between px-6">
+        <div className="mx-auto flex h-16 max-w-3xl items-center justify-between px-4 sm:h-20 sm:px-6">
           <Link to="/app" className="flex items-center gap-2.5">
             <span className="flex size-9 items-center justify-center rounded-xl bg-brand-600">
               <Timer className="size-5 text-white" strokeWidth={2.5} />
             </span>
             <span className="text-lg font-semibold tracking-tight text-slate-900">
-              FocusFlow
+              Focus10
             </span>
           </Link>
           <Link
@@ -26,36 +35,44 @@ export default function Settings() {
             className="inline-flex items-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
           >
             <ArrowLeft className="size-4" />
-            Артқа
+            {t('common.back')}
           </Link>
         </div>
       </header>
 
-      <main id="main" className="mx-auto max-w-3xl px-6 py-10">
-        <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
-          Параметрлер
+      <main
+        id="main"
+        className="mx-auto max-w-3xl px-4 py-6 pb-[calc(2.5rem+env(safe-area-inset-bottom))] sm:px-6 sm:py-10"
+      >
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+          {t('settings.title')}
         </h1>
 
-        <section className="mt-8 rounded-2xl border border-slate-200 bg-white p-6">
-          <h2 className="text-lg font-semibold text-slate-900">Аккаунт</h2>
+        <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 sm:mt-8 sm:p-6">
+          <h2 className="text-lg font-semibold text-slate-900">
+            {t('settings.account')}
+          </h2>
           <dl className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <Row label="Аты-жөні" value={user.name} />
-            <Row label="Email" value={user.email} />
-            <Row label="Тариф" value={user.plan} />
+            <Row label={t('settings.name')} value={user.name} />
+            <Row label={t('settings.email')} value={user.email} />
           </dl>
         </section>
 
-        <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-6">
-          <h2 className="text-lg font-semibold text-slate-900">Деректі жүктеу</h2>
-          <p className="mt-2 text-sm/6 text-slate-600">
-            Есептелген уақытыңды CSV түрінде ал — Excel мен Google Sheets ашады.
-          </p>
+        <section className="mt-4 rounded-2xl border border-slate-200 bg-white p-5 sm:mt-6 sm:p-6">
+          <h2 className="text-lg font-semibold text-slate-900">
+            {t('settings.languageTitle')}
+          </h2>
+          <p className="mt-2 text-sm/6 text-slate-600">{t('settings.languageBody')}</p>
+          <LanguageSwitcher className="mt-4" />
+        </section>
+
+        <section className="mt-4 rounded-2xl border border-slate-200 bg-white p-5 sm:mt-6 sm:p-6">
+          <h2 className="text-lg font-semibold text-slate-900">
+            {t('settings.exportTitle')}
+          </h2>
+          <p className="mt-2 text-sm/6 text-slate-600">{t('settings.exportBody')}</p>
           <div className="mt-4 flex flex-wrap gap-3">
-            {[
-              { range: 'week', label: 'Соңғы 7 күн' },
-              { range: 'month', label: 'Соңғы 30 күн' },
-              { range: 'all', label: 'Барлық уақыт' },
-            ].map((item) => (
+            {RANGES.map((item) => (
               <a
                 key={item.range}
                 href={`/api/reports/export.csv?range=${item.range}`}
@@ -63,7 +80,7 @@ export default function Settings() {
                 className="inline-flex items-center gap-2 rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
               >
                 <Download className="size-4" />
-                {item.label}
+                {t(item.key)}
               </a>
             ))}
           </div>
@@ -86,6 +103,7 @@ function Row({ label, value }) {
 }
 
 function PasswordForm({ notify }) {
+  const { t } = useI18n()
   const [current, setCurrent] = useState('')
   const [next, setNext] = useState('')
   const [errors, setErrors] = useState({})
@@ -96,7 +114,7 @@ function PasswordForm({ notify }) {
     setErrors({})
 
     if (next.length < 8) {
-      setErrors({ new_password: 'Құпиясөз кемінде 8 таңба болуы керек.' })
+      setErrors({ new_password: t('settings.passwordTooShort') })
       return
     }
 
@@ -105,7 +123,7 @@ function PasswordForm({ notify }) {
       await api.changePassword({ current_password: current, new_password: next })
       setCurrent('')
       setNext('')
-      notify('Құпиясөз ауыстырылды. Басқа құрылғылардан шығарылдың.')
+      notify(t('settings.passwordChanged'))
     } catch (error) {
       if (Object.keys(error.fields ?? {}).length > 0) setErrors(error.fields)
       else notify(error.message)
@@ -115,23 +133,23 @@ function PasswordForm({ notify }) {
   }
 
   return (
-    <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-6">
-      <h2 className="text-lg font-semibold text-slate-900">Құпиясөзді ауыстыру</h2>
-      <p className="mt-2 text-sm/6 text-slate-600">
-        Ауыстырғаннан кейін басқа құрылғылардағы сессиялар жойылады.
-      </p>
+    <section className="mt-4 rounded-2xl border border-slate-200 bg-white p-5 sm:mt-6 sm:p-6">
+      <h2 className="text-lg font-semibold text-slate-900">
+        {t('settings.passwordTitle')}
+      </h2>
+      <p className="mt-2 text-sm/6 text-slate-600">{t('settings.passwordBody')}</p>
 
       <form onSubmit={submit} noValidate className="mt-4 max-w-sm space-y-4">
         <Field
           id="current_password"
-          label="Ағымдағы құпиясөз"
+          label={t('settings.currentPassword')}
           value={current}
           onChange={(event) => setCurrent(event.target.value)}
           error={errors.current_password}
         />
         <Field
           id="new_password"
-          label="Жаңа құпиясөз"
+          label={t('settings.newPassword')}
           value={next}
           onChange={(event) => setNext(event.target.value)}
           error={errors.new_password}
@@ -142,7 +160,7 @@ function PasswordForm({ notify }) {
           className="inline-flex items-center gap-2 rounded-full bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-700 disabled:opacity-50"
         >
           {saving && <Loader2 className="size-4 animate-spin" />}
-          Ауыстыру
+          {t('settings.changePassword')}
         </button>
       </form>
     </section>
@@ -150,6 +168,7 @@ function PasswordForm({ notify }) {
 }
 
 function DangerZone({ notify }) {
+  const { t } = useI18n()
   const [password, setPassword] = useState('')
   const [confirming, setConfirming] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -169,32 +188,31 @@ function DangerZone({ notify }) {
   }
 
   return (
-    <section className="mt-6 rounded-2xl border border-red-200 bg-red-50/50 p-6">
+    <section className="mt-4 rounded-2xl border border-red-200 bg-red-50/50 p-5 sm:mt-6 sm:p-6">
       <div className="flex items-start gap-3">
         <TriangleAlert className="mt-0.5 size-5 shrink-0 text-red-600" />
         <div className="min-w-0 flex-1">
-          <h2 className="text-lg font-semibold text-slate-900">Аккаунтты жою</h2>
-          <p className="mt-2 text-sm/6 text-slate-600">
-            Барлық жоба, тапсырма және уақыт жазбаң біржола өшеді. Бұл әрекетті
-            кері қайтару мүмкін емес — алдымен деректі CSV-ге жүктеп ал.
-          </p>
+          <h2 className="text-lg font-semibold text-slate-900">
+            {t('settings.dangerTitle')}
+          </h2>
+          <p className="mt-2 text-sm/6 text-slate-600">{t('settings.dangerBody')}</p>
 
           {confirming ? (
             <form onSubmit={remove} className="mt-4 max-w-sm space-y-4">
               <Field
                 id="delete_password"
-                label="Растау үшін құпиясөзіңді енгіз"
+                label={t('settings.confirmPassword')}
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
               />
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-3">
                 <button
                   type="submit"
                   disabled={deleting || password === ''}
                   className="inline-flex items-center gap-2 rounded-full bg-red-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:opacity-50"
                 >
                   {deleting && <Loader2 className="size-4 animate-spin" />}
-                  Біржола жою
+                  {t('settings.deleteForever')}
                 </button>
                 <button
                   type="button"
@@ -204,7 +222,7 @@ function DangerZone({ notify }) {
                   }}
                   className="rounded-full border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
                 >
-                  Болдырмау
+                  {t('common.cancel')}
                 </button>
               </div>
             </form>
@@ -214,7 +232,7 @@ function DangerZone({ notify }) {
               onClick={() => setConfirming(true)}
               className="mt-4 rounded-full border border-red-300 bg-white px-5 py-2.5 text-sm font-semibold text-red-700 transition-colors hover:bg-red-50"
             >
-              Аккаунтты жою
+              {t('settings.dangerTitle')}
             </button>
           )}
         </div>

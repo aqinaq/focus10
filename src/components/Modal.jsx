@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
 import useScrollLock from '../hooks/useScrollLock'
+import { useI18n } from '../i18n/i18nContext'
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])'
@@ -10,6 +11,7 @@ const FOCUSABLE =
  * фокус тұзағы (Tab модальдан шықпайды) және жабылғанда фокусты қайтару.
  */
 export default function Modal({ open, onClose, label, children, size = 'max-w-md' }) {
+  const { t } = useI18n()
   const panelRef = useRef(null)
   const restoreRef = useRef(null)
 
@@ -72,13 +74,17 @@ export default function Modal({ open, onClose, label, children, size = 'max-w-md
         aria-modal="true"
         aria-label={label}
         tabIndex={-1}
-        className={`relative max-h-[92vh] w-full ${size} overflow-y-auto rounded-t-3xl bg-white p-6 shadow-2xl outline-none sm:rounded-3xl sm:p-8`}
+        // dvh — мобиль браузердің адрес жолағы жиналып-жазылғанда да
+        // модаль экраннан аспауы үшін. overscroll-contain — ішіндегі скролл
+        // соңына жеткенде артындағы бетке «өтіп кетпеуі» үшін.
+        // Төменгі padding iPhone-ның үй жолағының астына түсіп кетпейді.
+        className={`relative max-h-[92dvh] w-full ${size} overflow-y-auto overscroll-contain rounded-t-3xl bg-white p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl outline-none sm:rounded-3xl sm:p-8 sm:pb-8`}
       >
         <button
           type="button"
           onClick={onClose}
-          aria-label="Жабу"
-          className="absolute top-4 right-4 rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-900"
+          aria-label={t('common.close')}
+          className="absolute top-3 right-3 rounded-lg p-2.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-900 sm:top-4 sm:right-4 sm:p-2"
         >
           <X className="size-5" />
         </button>

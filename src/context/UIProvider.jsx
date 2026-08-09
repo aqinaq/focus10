@@ -11,7 +11,7 @@ const TOAST_MS = 4000
 export function UIProvider({ children }) {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const [auth, setAuth] = useState(null) // null | { mode, plan }
+  const [auth, setAuth] = useState(null) // null | { mode }
   const [demoOpen, setDemoOpen] = useState(false)
   const [toasts, setToasts] = useState([])
 
@@ -49,8 +49,8 @@ export function UIProvider({ children }) {
     () => ({
       // Кірген қолданушыға тіркелу формасын қайта көрсетудің мағынасы жоқ —
       // оны бірден қолданбаға жібереміз.
-      openSignup: (plan) =>
-        user ? navigate('/app') : setAuth({ mode: 'signup', plan }),
+      openSignup: () =>
+        user ? navigate('/app') : setAuth({ mode: 'signup' }),
       openSignin: () => (user ? navigate('/app') : setAuth({ mode: 'signin' })),
       openDemo: () => setDemoOpen(true),
       notify,
@@ -68,7 +68,6 @@ export function UIProvider({ children }) {
       <AuthModal
         open={auth !== null}
         mode={auth?.mode ?? 'signup'}
-        plan={auth?.plan}
         onClose={closeAuth}
         onSwitchMode={(mode) => setAuth({ mode })}
       />

@@ -1,20 +1,22 @@
+import { DEFAULT_LANG, translate } from '../i18n/messages'
+
 /**
- * 8178 → "2 сағ 16 мин".
- * Минуттан қысқа сессия "0 мин" болып жоғалып кетпеуі үшін секундпен
- * көрсетіледі: 4 → "4 сек".
+ * 8178 → «2 сағ 16 мин» / "2h 16m".
+ * Минуттан қысқа сессия «0 мин» болып жоғалып кетпеуі үшін секундпен
+ * көрсетіледі: 4 → «4 сек» / "4s".
  */
-export function formatDuration(seconds) {
+export function formatDuration(seconds, lang = DEFAULT_LANG) {
   const total = Math.max(0, Math.floor(seconds ?? 0))
-  if (total < 60) return `${total} сек`
+  if (total < 60) return translate(lang, 'format.seconds', { value: total })
 
   const hours = Math.floor(total / 3600)
   const minutes = Math.floor((total % 3600) / 60)
 
-  if (hours === 0) return `${minutes} мин`
-  return `${hours} сағ ${minutes} мин`
+  if (hours === 0) return translate(lang, 'format.minutes', { value: minutes })
+  return translate(lang, 'format.hoursMinutes', { hours, minutes })
 }
 
-/** 1458 → "24:18", 3721 → "1:02:01" — жүріп тұрған таймерге. */
+/** 1458 → "24:18", 3721 → "1:02:01" — жүріп тұрған таймерге. Тілге тәуелсіз. */
 export function formatClock(seconds) {
   const total = Math.max(0, Math.floor(seconds ?? 0))
   const hours = Math.floor(total / 3600)
@@ -24,10 +26,8 @@ export function formatClock(seconds) {
   return hours > 0 ? `${hours}:${minutes}:${secs}` : `${minutes}:${secs}`
 }
 
-const WEEKDAYS = ['Жк', 'Дс', 'Сс', 'Ср', 'Бс', 'Жм', 'Сб']
-
-/** "2026-08-06" → "Бс" */
-export function weekdayLabel(isoDate) {
+/** "2026-08-06" → «Бс» / "Thu" */
+export function weekdayLabel(isoDate, lang = DEFAULT_LANG) {
   const [year, month, day] = isoDate.split('-').map(Number)
-  return WEEKDAYS[new Date(year, month - 1, day).getDay()]
+  return translate(lang, 'format.weekdays')[new Date(year, month - 1, day).getDay()]
 }

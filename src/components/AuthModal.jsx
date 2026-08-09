@@ -3,14 +3,16 @@ import { useNavigate } from 'react-router-dom'
 import { Loader2, Timer } from 'lucide-react'
 import Modal from './Modal'
 import { useAuth } from '../context/authContext'
+import { useI18n } from '../i18n/i18nContext'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
 const emptyForm = { name: '', email: '', password: '' }
 
-export default function AuthModal({ open, mode, plan, onClose, onSwitchMode }) {
+export default function AuthModal({ open, mode, onClose, onSwitchMode }) {
   const isSignup = mode === 'signup'
   const { register, login } = useAuth()
+  const { t } = useI18n()
   const navigate = useNavigate()
 
   const [form, setForm] = useState(emptyForm)
@@ -39,13 +41,13 @@ export default function AuthModal({ open, mode, plan, onClose, onSwitchMode }) {
   const validate = () => {
     const next = {}
     if (isSignup && form.name.trim().length < 2) {
-      next.name = 'Атыңды жаз (кемінде 2 таңба).'
+      next.name = t('auth.errors.name')
     }
     if (!EMAIL_RE.test(form.email.trim())) {
-      next.email = 'Жарамды email енгіз.'
+      next.email = t('auth.errors.email')
     }
     if (form.password.length < 8) {
-      next.password = 'Құпиясөз кемінде 8 таңба болуы керек.'
+      next.password = t('auth.errors.password')
     }
     return next
   }
@@ -66,7 +68,6 @@ export default function AuthModal({ open, mode, plan, onClose, onSwitchMode }) {
           name: form.name.trim(),
           email: form.email.trim(),
           password: form.password,
-          plan,
         })
       } else {
         await login({ email: form.email.trim(), password: form.password })
@@ -85,7 +86,7 @@ export default function AuthModal({ open, mode, plan, onClose, onSwitchMode }) {
     }
   }
 
-  const title = isSignup ? 'Тегін аккаунт аш' : 'Аккаунтқа кіру'
+  const title = isSignup ? t('auth.signupTitle') : t('auth.signinTitle')
 
   return (
     <Modal open={open} onClose={onClose} label={title}>
@@ -93,32 +94,21 @@ export default function AuthModal({ open, mode, plan, onClose, onSwitchMode }) {
         <Timer className="size-6 text-white" strokeWidth={2.5} />
       </span>
 
-      <h2 className="mt-5 text-2xl font-semibold tracking-tight text-slate-900">
+      <h2 className="mt-4 pr-10 text-2xl font-semibold tracking-tight text-slate-900 sm:mt-5 sm:pr-0">
         {title}
       </h2>
       <p className="mt-2 text-sm/6 text-slate-500">
-        {isSignup ? (
-          <>
-            {plan ? (
-              <>
-                <span className="font-medium text-slate-900">{plan}</span> тарифі ·{' '}
-              </>
-            ) : null}
-            Тіркелу тегін, карта сұралмайды.
-          </>
-        ) : (
-          'Email мен құпиясөзіңді енгіз.'
-        )}
+        {isSignup ? t('auth.signupSubtitle') : t('auth.signinSubtitle')}
       </p>
 
-      <form onSubmit={handleSubmit} noValidate className="mt-8 space-y-5">
+      <form onSubmit={handleSubmit} noValidate className="mt-6 space-y-4 sm:mt-8 sm:space-y-5">
         {isSignup && (
           <Field
             id="name"
-            label="Аты-жөні"
+            label={t('auth.name')}
             type="text"
             autoComplete="name"
-            placeholder="Айгерім Саду"
+            placeholder={t('auth.namePlaceholder')}
             value={form.name}
             onChange={setField('name')}
             error={errors.name}
@@ -126,12 +116,18 @@ export default function AuthModal({ open, mode, plan, onClose, onSwitchMode }) {
           />
         )}
 
+        {/* Мобиль пернетақта поштаны бас әріппен бастап, астын сызып
+            «түзетпеуі» үшін */}
         <Field
           id="email"
-          label="Email"
+          label={t('auth.email')}
           type="email"
+          inputMode="email"
           autoComplete="email"
-          placeholder="sen@company.com"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          placeholder={t('auth.emailPlaceholder')}
           value={form.email}
           onChange={setField('email')}
           error={errors.email}
@@ -140,17 +136,21 @@ export default function AuthModal({ open, mode, plan, onClose, onSwitchMode }) {
 
         <Field
           id="password"
-          label="Құпиясөз"
+          label={t('auth.password')}
           type="password"
           autoComplete={isSignup ? 'new-password' : 'current-password'}
-          placeholder="Кемінде 8 таңба"
+          enterKeyHint="go"
+          placeholder={t('auth.passwordPlaceholder')}
           value={form.password}
           onChange={setField('password')}
           error={errors.password}
         />
 
         {formError && (
-          <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+          <p
+            role="alert"
+            className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700"
+          >
             {formError}
           </p>
         )}
@@ -161,18 +161,22 @@ export default function AuthModal({ open, mode, plan, onClose, onSwitchMode }) {
           className="flex w-full items-center justify-center gap-2 rounded-full bg-brand-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-70"
         >
           {submitting && <Loader2 className="size-4 animate-spin" />}
-          {submitting ? 'Тексерілуде…' : isSignup ? 'Тегін бастау' : 'Кіру'}
+          {submitting
+            ? t('auth.submitting')
+            : isSignup
+              ? t('auth.signupSubmit')
+              : t('auth.signinSubmit')}
         </button>
       </form>
 
       <p className="mt-6 text-center text-sm text-slate-500">
-        {isSignup ? 'Аккаунтың бар ма?' : 'Аккаунтың жоқ па?'}{' '}
+        {isSignup ? t('auth.haveAccount') : t('auth.noAccount')}{' '}
         <button
           type="button"
           onClick={() => onSwitchMode(isSignup ? 'signin' : 'signup')}
           className="font-semibold text-brand-600 transition-colors hover:text-brand-700"
         >
-          {isSignup ? 'Кіру' : 'Тіркелу'}
+          {isSignup ? t('auth.switchToSignin') : t('auth.switchToSignup')}
         </button>
       </p>
     </Modal>

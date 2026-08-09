@@ -8,7 +8,7 @@
 # панелінде Environment бөлімінде қолмен қоясың (sync: false соны білдіреді).
 services:
   - type: web
-    name: focusflow
+    name: focus10
     runtime: node
     plan: free
     region: frankfurt

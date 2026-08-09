@@ -42,7 +42,7 @@ router.post('/start', async (req, res, next) => {
     const taskId = Number(req.body?.task_id)
 
     if (!Number.isInteger(taskId)) {
-      return res.status(404).json({ error: 'Тапсырма табылмады.' })
+      return res.status(404).json({ error: req.t('task.notFound') })
     }
 
     const task = await one(
@@ -50,11 +50,11 @@ router.post('/start', async (req, res, next) => {
       [taskId, req.user.id],
     )
 
-    if (!task) return res.status(404).json({ error: 'Тапсырма табылмады.' })
+    if (!task) return res.status(404).json({ error: req.t('task.notFound') })
     if (task.done) {
       return res
         .status(400)
-        .json({ error: 'Аяқталған тапсырмаға таймер қосылмайды.' })
+        .json({ error: req.t('timer.taskDone') })
     }
 
     // Бір мезгілде бір таймер: бұрынғысын алдымен тоқтатамыз
@@ -76,7 +76,7 @@ router.post('/stop', async (req, res, next) => {
     const stopped = await stopRunning(req.user.id)
 
     if (stopped === 0) {
-      return res.status(400).json({ error: 'Жүріп тұрған таймер жоқ.' })
+      return res.status(400).json({ error: req.t('timer.notRunning') })
     }
 
     res.json({ active: null })

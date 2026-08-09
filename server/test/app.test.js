@@ -357,7 +357,7 @@ describe('Сервер мінез-құлқы', () => {
       for (let i = 0; i < 6; i += 1) {
         const { status } = await client.request('/api/auth/login', {
           method: 'POST',
-          body: { email: 'nobody@focusflow.test', password: 'қате' },
+          body: { email: 'nobody@focus10.test', password: 'қате' },
         })
         statuses.push(status)
       }

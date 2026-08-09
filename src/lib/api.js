@@ -1,6 +1,12 @@
+import { readLangCookie } from '../i18n/langCookie'
+import { translate } from '../i18n/messages'
+
 /**
  * API клиенті. Сессия httpOnly cookie-де тұрғандықтан токенді қолмен
  * тасымалдаудың қажеті жоқ — тек credentials жіберілуін қамтамасыз етеміз.
+ *
+ * Сервер қате мәтінін `lang` cookie-ге қарап аударып береді, сондықтан
+ * мұндағы аударма тек жауапта мәтін мүлде болмаған жағдайға арналған.
  */
 export class ApiError extends Error {
   constructor(message, { status, fields }) {
@@ -24,7 +30,7 @@ async function request(path, { method = 'GET', body } = {}) {
   const data = await response.json().catch(() => ({}))
 
   if (!response.ok) {
-    throw new ApiError(data.error ?? 'Сұраныс сәтсіз аяқталды.', {
+    throw new ApiError(data.error ?? translate(readLangCookie(), 'api.failed'), {
       status: response.status,
       fields: data.errors,
     })

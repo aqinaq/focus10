@@ -28,7 +28,7 @@ router.post('/', async (req, res, next) => {
     const name = String(req.body?.name ?? '').trim()
 
     if (name.length < 1 || name.length > 60) {
-      return res.status(400).json({ error: 'Жоба аты 1–60 таңба болуы керек.' })
+      return res.status(400).json({ error: req.t('project.nameLength') })
     }
 
     const project = await one(
@@ -48,7 +48,7 @@ router.delete('/:id', async (req, res, next) => {
 
     // Postgres сан күтеді — «abc» келсе, оны 500 емес, 404 деп қайтарамыз
     if (!Number.isInteger(id)) {
-      return res.status(404).json({ error: 'Жоба табылмады.' })
+      return res.status(404).json({ error: req.t('project.notFound') })
     }
 
     const { rowCount } = await pool.query(
@@ -57,7 +57,7 @@ router.delete('/:id', async (req, res, next) => {
     )
 
     if (rowCount === 0) {
-      return res.status(404).json({ error: 'Жоба табылмады.' })
+      return res.status(404).json({ error: req.t('project.notFound') })
     }
 
     res.status(204).end()

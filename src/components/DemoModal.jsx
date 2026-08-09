@@ -2,40 +2,29 @@ import { useCallback, useEffect, useState } from 'react'
 import { ArrowRight, Pause, Play, RotateCcw } from 'lucide-react'
 import Modal from './Modal'
 import { useUI } from '../context/uiContext'
+import { useI18n } from '../i18n/i18nContext'
 
 /**
- * Қадамдардың `area` мәні — Hero-дағы нағыз скриншоттың қай бөлігі
- * ерекшеленетіні (сурет өлшеміне қатысты пайызбен).
+ * `area` — Hero-дағы нағыз скриншоттың қай бөлігі ерекшеленетіні (сурет
+ * өлшеміне қатысты пайызбен). Реті аудармадағы `demo.steps` тізімімен
+ * сәйкес келеді.
  */
-const steps = [
-  {
-    title: 'Таймерді бір басумен қос',
-    body: 'Тапсырманың жанындағы ▶ батырмасын бас — уақыт сол тапсырмаға жазыла бастайды.',
-    area: { left: 9, top: 14.5, width: 81.5, height: 14.5 },
-  },
-  {
-    title: 'Тапсырмаңды жинақта',
-    body: 'Жобаға тіркеп, күйі мен жобасы бойынша сүзгіле. Аяқтағанда таймері өзі тоқтайды.',
-    area: { left: 9, top: 48, width: 54, height: 51 },
-  },
-  {
-    title: 'Апталық статистиканы көр',
-    body: 'Уақытыңның қай жобаға кеткенін диаграммадан бір қарағанда танисың.',
-    area: { left: 64.5, top: 48, width: 26, height: 48.5 },
-  },
-  {
-    title: 'Есепті CSV-ге жүкте',
-    body: '7 күн, 30 күн немесе бүкіл тарихты бір файлмен алып, клиентке жібере сал.',
-    area: { left: 82.5, top: 50.5, width: 8, height: 5 },
-  },
+const areas = [
+  { left: 9, top: 14.5, width: 81.5, height: 14.5 },
+  { left: 9, top: 48, width: 54, height: 51 },
+  { left: 64.5, top: 48, width: 26, height: 48.5 },
+  { left: 82.5, top: 50.5, width: 8, height: 5 },
 ]
 
 const STEP_MS = 3200
 
 export default function DemoModal({ open, onClose }) {
   const { openSignup } = useUI()
+  const { t } = useI18n()
   const [step, setStep] = useState(0)
   const [playing, setPlaying] = useState(true)
+
+  const steps = t('demo.steps')
 
   useEffect(() => {
     if (open) {
@@ -49,7 +38,7 @@ export default function DemoModal({ open, onClose }) {
 
     const timer = setTimeout(() => {
       setStep((current) => {
-        if (current === steps.length - 1) {
+        if (current === areas.length - 1) {
           setPlaying(false)
           return current
         }
@@ -65,24 +54,24 @@ export default function DemoModal({ open, onClose }) {
     setPlaying(true)
   }, [])
 
-  const finished = !playing && step === steps.length - 1
-  const area = steps[step].area
+  const finished = !playing && step === areas.length - 1
+  const area = areas[step]
 
   return (
-    <Modal open={open} onClose={onClose} label="FocusFlow демосы" size="max-w-3xl">
-      <p className="text-sm font-semibold tracking-wide text-brand-600 uppercase">
-        Демо
+    <Modal open={open} onClose={onClose} label={t('demo.label')} size="max-w-3xl">
+      <p className="text-xs font-semibold tracking-wide text-brand-600 uppercase sm:text-sm">
+        {t('demo.eyebrow')}
       </p>
-      <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900">
-        FocusFlow қалай жұмыс істейді
+      <h2 className="mt-2 pr-10 text-xl font-semibold tracking-tight text-balance text-slate-900 sm:pr-0 sm:text-2xl">
+        {t('demo.title')}
       </h2>
 
-      <div className="relative mt-6 overflow-hidden rounded-2xl border border-slate-200">
+      <div className="relative mt-5 overflow-hidden rounded-2xl border border-slate-200 sm:mt-6">
         <img
           src="/app-dashboard.png"
           width={2720}
           height={1640}
-          alt="FocusFlow қолданбасының басты экраны"
+          alt={t('demo.imageAlt')}
           className="block w-full"
         />
 
@@ -100,10 +89,7 @@ export default function DemoModal({ open, onClose }) {
         />
       </div>
 
-      <p className="mt-3 text-xs text-slate-400">
-        Жоғарыдағы — қолданбаның нағыз экран суреті, мысал аккаунттың
-        деректерімен.
-      </p>
+      <p className="mt-3 text-xs text-slate-400">{t('demo.imageNote')}</p>
 
       {/* қадам индикаторы */}
       <div className="mt-4 flex gap-2">
@@ -115,7 +101,7 @@ export default function DemoModal({ open, onClose }) {
               setStep(index)
               setPlaying(false)
             }}
-            aria-label={`${index + 1}-қадам: ${item.title}`}
+            aria-label={t('demo.stepAria', { index: index + 1, title: item.title })}
             aria-current={index === step ? 'step' : undefined}
             className="group flex-1 py-2"
           >
@@ -131,19 +117,21 @@ export default function DemoModal({ open, onClose }) {
       </div>
 
       <div className="mt-2 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-h-20 flex-1">
+        <div className="flex-1 sm:min-h-20">
           <h3 className="text-lg font-semibold text-slate-900">
             {step + 1}. {steps[step].title}
           </h3>
           <p className="mt-1 text-sm/6 text-slate-600">{steps[step].body}</p>
         </div>
 
-        <div className="flex shrink-0 gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <button
             type="button"
             onClick={finished ? restart : () => setPlaying((v) => !v)}
             data-autofocus
-            aria-label={finished ? 'Қайта ойнату' : playing ? 'Кідірту' : 'Ойнату'}
+            aria-label={
+              finished ? t('demo.replay') : playing ? t('demo.pause') : t('demo.play')
+            }
             className="flex size-11 items-center justify-center rounded-full border border-slate-300 text-slate-700 transition-colors hover:bg-slate-50"
           >
             {finished ? (
@@ -161,9 +149,9 @@ export default function DemoModal({ open, onClose }) {
               onClose()
               openSignup()
             }}
-            className="group inline-flex items-center gap-2 rounded-full bg-brand-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
+            className="group inline-flex flex-1 items-center justify-center gap-2 rounded-full bg-brand-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-700 sm:flex-none"
           >
-            Тегін бастау
+            {t('demo.cta')}
             <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
           </button>
         </div>

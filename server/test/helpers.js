@@ -115,7 +115,7 @@ export async function registerUser(client, overrides = {}) {
 
   const payload = {
     name: `Тест Қолданушы ${counter}`,
-    email: `user${counter}.${Date.now()}@focusflow.test`,
+    email: `user${counter}.${Date.now()}@focus10.test`,
     password: 'supersecret1',
     ...overrides,
   }

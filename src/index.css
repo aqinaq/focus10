@@ -24,11 +24,39 @@
   html {
     scroll-behavior: smooth;
     /* sticky navbar анкерді жаппауы үшін */
-    scroll-padding-top: 5rem;
+    scroll-padding-top: 4.5rem;
+    /* iOS Safari телефонды көлденең ұстағанда мәтінді өзі ұлғайтпасын */
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
     @apply bg-white text-slate-600 antialiased;
+    /* Кездейсоқ 1-2 пиксель асып кеткен безендіру көлденең скролл
+       тудырмауы үшін. `clip` — `hidden` емес: sticky тақырыпты бұзбайды. */
+    overflow-x: clip;
+  }
+
+  /* Тигенде шығатын сұр тіктөртбұрыш пен қос басқандағы zoom мобильде
+     артық — батырманың өз hover/active күйі жеткілікті. */
+  a,
+  button,
+  [role='button'],
+  label,
+  summary {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  /* iOS Safari 16px-тен кіші мәтін өрісін басқанда бетті автоматты түрде
+     жақындатады да, қолданушыны қолмен кері шығаруға мәжбүрлейді.
+     Сондықтан мобильде мәтін енгізілетін өріс — кемі 16px.
+     `select` тізбеден таңдау дөңгелегін ашады, оны ұлғайтпайды — сондықтан
+     ол сыртқы түрін сақтап, өз өлшемінде қалады. */
+  @media (max-width: 40rem) {
+    input:not([type='checkbox']):not([type='radio']),
+    textarea {
+      font-size: 1rem;
+    }
   }
 
   ::selection {

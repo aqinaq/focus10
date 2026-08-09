@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   // Әдепкі 5173 портын басқа жоба иеленіп қалуы мүмкін — сонда Vite үнсіз
   // басқа портқа көшіп, 5173-те мүлдем бөгде сайт ашылып тұрады. Сондықтан
-  // FocusFlow-ға өз портын бекітеміз.
+  // Focus10-ға өз портын бекітеміз.
   server: {
     port: 5180,
     strictPort: true,

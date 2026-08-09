@@ -39,8 +39,10 @@ router.get('/week', async (req, res, next) => {
       [req.user.id, APP_TZ],
     )
 
+    // Жобасы жоқ уақыт `project: null` болып қайтады — оның атауын клиент
+    // өз тілінде қояды, сондықтан мұнда белгі жазып қатырып тастамаймыз.
     const { rows: byProject } = await query(
-      `SELECT COALESCE(p.name, 'Жобасыз')     AS project,
+      `SELECT p.name                           AS project,
               COALESCE(SUM(e.seconds), 0)::int AS seconds
          FROM time_entries e
          JOIN tasks t ON t.id = e.task_id
@@ -48,7 +50,7 @@ router.get('/week', async (req, res, next) => {
         WHERE e.user_id = $1
           AND (e.started_at AT TIME ZONE $2)::date
               >= (now() AT TIME ZONE $2)::date - interval '6 days'
-        GROUP BY COALESCE(p.name, 'Жобасыз')
+        GROUP BY p.name
        HAVING COALESCE(SUM(e.seconds), 0) > 0
         ORDER BY seconds DESC`,
       [req.user.id, APP_TZ],
@@ -89,7 +91,15 @@ router.get('/export.csv', async (req, res, next) => {
     )
 
     const csv = toCsv(
-      ['Күні', 'Басталды', 'Аяқталды', 'Жоба', 'Тапсырма', 'Секунд', 'Сағат'],
+      [
+        req.t('csv.date'),
+        req.t('csv.start'),
+        req.t('csv.end'),
+        req.t('csv.project'),
+        req.t('csv.task'),
+        req.t('csv.seconds'),
+        req.t('csv.hours'),
+      ],
       rows.map((row) => [
         row.day,
         row.start_time,
@@ -106,7 +116,7 @@ router.get('/export.csv', async (req, res, next) => {
     res.setHeader('Content-Type', 'text/csv; charset=utf-8')
     res.setHeader(
       'Content-Disposition',
-      `attachment; filename="focusflow-${today}.csv"`,
+      `attachment; filename="focus10-${today}.csv"`,
     )
     res.send(csv)
   } catch (error) {
