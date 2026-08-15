@@ -59,14 +59,14 @@ export default function DemoModal({ open, onClose }) {
 
   return (
     <Modal open={open} onClose={onClose} label={t('demo.label')} size="max-w-3xl">
-      <p className="text-xs font-semibold tracking-wide text-brand-600 uppercase sm:text-sm">
+      <p className="text-xs font-semibold tracking-wide text-brand-600 uppercase sm:text-sm dark:text-brand-400">
         {t('demo.eyebrow')}
       </p>
-      <h2 className="mt-2 pr-10 text-xl font-semibold tracking-tight text-balance text-slate-900 sm:pr-0 sm:text-2xl">
+      <h2 className="mt-2 pr-10 text-xl font-semibold tracking-tight text-balance text-slate-900 sm:pr-0 sm:text-2xl dark:text-slate-100">
         {t('demo.title')}
       </h2>
 
-      <div className="relative mt-5 overflow-hidden rounded-2xl border border-slate-200 sm:mt-6">
+      <div className="relative mt-5 overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 sm:mt-6">
         <img
           src="/app-dashboard.png"
           width={2720}
@@ -84,12 +84,12 @@ export default function DemoModal({ open, onClose }) {
             top: `${area.top}%`,
             width: `${area.width}%`,
             height: `${area.height}%`,
-            boxShadow: '0 0 0 9999px rgb(15 23 42 / 0.45)',
+            boxShadow: '0 0 0 9999px var(--scrim)',
           }}
         />
       </div>
 
-      <p className="mt-3 text-xs text-slate-400">{t('demo.imageNote')}</p>
+      <p className="mt-3 text-xs text-slate-400 dark:text-slate-500">{t('demo.imageNote')}</p>
 
       {/* қадам индикаторы */}
       <div className="mt-4 flex gap-2">
@@ -109,7 +109,7 @@ export default function DemoModal({ open, onClose }) {
               className={`block h-1 rounded-full transition-colors ${
                 index <= step
                   ? 'bg-brand-600'
-                  : 'bg-slate-200 group-hover:bg-slate-300'
+                  : 'bg-slate-200 group-hover:bg-slate-300 dark:bg-slate-700 dark:group-hover:bg-slate-600'
               }`}
             />
           </button>
@@ -118,10 +118,10 @@ export default function DemoModal({ open, onClose }) {
 
       <div className="mt-2 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex-1 sm:min-h-20">
-          <h3 className="text-lg font-semibold text-slate-900">
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
             {step + 1}. {steps[step].title}
           </h3>
-          <p className="mt-1 text-sm/6 text-slate-600">{steps[step].body}</p>
+          <p className="mt-1 text-sm/6 text-slate-600 dark:text-slate-400">{steps[step].body}</p>
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
@@ -132,7 +132,7 @@ export default function DemoModal({ open, onClose }) {
             aria-label={
               finished ? t('demo.replay') : playing ? t('demo.pause') : t('demo.play')
             }
-            className="flex size-11 items-center justify-center rounded-full border border-slate-300 text-slate-700 transition-colors hover:bg-slate-50"
+            className="flex size-11 items-center justify-center rounded-full border border-slate-300 text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
           >
             {finished ? (
               <RotateCcw className="size-4" />

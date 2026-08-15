@@ -3,6 +3,7 @@ import { useUI } from '../context/uiContext'
 import { useAuth } from '../context/authContext'
 import { useI18n } from '../i18n/i18nContext'
 import LanguageSwitcher from './LanguageSwitcher'
+import ThemeSwitcher from './ThemeSwitcher'
 
 // Бұрын бұл жерде 14 сілтеме тұрған, оның бірде-бірі ешқайда апармайтын.
 // Қазір тек шынымен бар нәрсе қалды.
@@ -19,10 +20,10 @@ export default function Footer() {
 
   // py-1 — саусақпен дәл тиюге жеткілікті биіктік берсін
   const linkClass =
-    'inline-block py-1 text-sm text-slate-500 transition-colors hover:text-slate-900'
+    'inline-block py-1 text-sm text-slate-500 transition-colors hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100'
 
   return (
-    <footer className="border-t border-slate-200 bg-white">
+    <footer className="border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
       <div className="mx-auto max-w-7xl px-4 py-12 pb-[calc(3rem+env(safe-area-inset-bottom))] sm:px-6 sm:py-16 lg:px-8">
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 sm:gap-10 lg:grid-cols-4">
           {/* Бренд */}
@@ -31,19 +32,22 @@ export default function Footer() {
               <span className="flex size-9 items-center justify-center rounded-xl bg-brand-600">
                 <Timer className="size-5 text-white" strokeWidth={2.5} />
               </span>
-              <span className="text-lg font-semibold tracking-tight text-slate-900">
+              <span className="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100">
                 Focus10
               </span>
             </a>
-            <p className="mt-4 max-w-xs text-sm/6 text-slate-500">
+            <p className="mt-4 max-w-xs text-sm/6 text-slate-500 dark:text-slate-400">
               {t('footer.tagline')}
             </p>
-            <LanguageSwitcher className="mt-6" />
+            <div className="mt-6 flex flex-wrap gap-3">
+              <LanguageSwitcher />
+              <ThemeSwitcher />
+            </div>
           </div>
 
           {/* Бет бойынша */}
           <div>
-            <h3 className="text-sm font-semibold text-slate-900">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
               {t('footer.pageHeading')}
             </h3>
             <ul className="mt-4 space-y-3">
@@ -68,12 +72,12 @@ export default function Footer() {
 
           {/* Немен жасалған */}
           <div>
-            <h3 className="text-sm font-semibold text-slate-900">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
               {t('footer.stackHeading')}
             </h3>
             <ul className="mt-4 space-y-3">
               {t('footer.stack').map((item) => (
-                <li key={item} className="text-sm text-slate-500">
+                <li key={item} className="text-sm text-slate-500 dark:text-slate-400">
                   {item}
                 </li>
               ))}
@@ -82,12 +86,24 @@ export default function Footer() {
 
           {/* Жоспарда */}
           <div>
-            <h3 className="text-sm font-semibold text-slate-900">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
               {t('footer.plannedHeading')}
             </h3>
+            {/* Жоспардағыны шынымен бар мүмкіндіктен ажырату — тізім бір
+                қарағанда мәзірге ұқсап тұр, сондықтан ашық жазып қоямыз */}
+            <p className="mt-2 text-xs text-slate-400 dark:text-slate-500">
+              {t('footer.plannedNote')}
+            </p>
             <ul className="mt-4 space-y-3">
               {t('footer.planned').map((item) => (
-                <li key={item} className="text-sm text-slate-400">
+                <li
+                  key={item}
+                  className="flex items-center gap-2 text-sm text-slate-400 dark:text-slate-500"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="size-1.5 shrink-0 rounded-full border border-slate-300 dark:border-slate-700"
+                  />
                   {item}
                 </li>
               ))}
@@ -95,11 +111,11 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col gap-4 border-t border-slate-200 pt-8 sm:mt-16 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-slate-500">
+        <div className="mt-12 flex flex-col gap-4 border-t border-slate-200 pt-8 dark:border-slate-800 sm:mt-16 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             © {new Date().getFullYear()} Focus10
           </p>
-          <p className="max-w-xl text-sm text-pretty text-slate-400">
+          <p className="max-w-xl text-sm text-pretty text-slate-400 dark:text-slate-500">
             {t('footer.disclaimer')}
           </p>
         </div>

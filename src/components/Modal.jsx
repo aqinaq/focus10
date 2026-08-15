@@ -64,7 +64,7 @@ export default function Modal({ open, onClose, label, children, size = 'max-w-md
   return (
     <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center sm:p-6">
       <div
-        className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm dark:bg-slate-950/75"
         onClick={onClose}
       />
 
@@ -78,13 +78,13 @@ export default function Modal({ open, onClose, label, children, size = 'max-w-md
         // модаль экраннан аспауы үшін. overscroll-contain — ішіндегі скролл
         // соңына жеткенде артындағы бетке «өтіп кетпеуі» үшін.
         // Төменгі padding iPhone-ның үй жолағының астына түсіп кетпейді.
-        className={`relative max-h-[92dvh] w-full ${size} overflow-y-auto overscroll-contain rounded-t-3xl bg-white p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl outline-none sm:rounded-3xl sm:p-8 sm:pb-8`}
+        className={`relative max-h-[92dvh] w-full ${size} overflow-y-auto overscroll-contain rounded-t-3xl bg-white p-5 dark:bg-slate-900 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl outline-none sm:rounded-3xl sm:p-8 sm:pb-8`}
       >
         <button
           type="button"
           onClick={onClose}
           aria-label={t('common.close')}
-          className="absolute top-3 right-3 rounded-lg p-2.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-900 sm:top-4 sm:right-4 sm:p-2"
+          className="absolute top-3 right-3 rounded-lg p-2.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-100 sm:top-4 sm:right-4 sm:p-2"
         >
           <X className="size-5" />
         </button>

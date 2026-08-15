@@ -5,6 +5,7 @@ import { useAuth } from '../context/authContext'
 import { useI18n } from '../i18n/i18nContext'
 import useScrollLock from '../hooks/useScrollLock'
 import LanguageSwitcher from './LanguageSwitcher'
+import ThemeSwitcher from './ThemeSwitcher'
 
 const links = [
   { key: 'nav.features', href: '#features' },
@@ -38,8 +39,8 @@ export default function Navbar() {
     <header
       className={`sticky top-0 z-50 transition-colors duration-200 ${
         scrolled
-          ? 'border-b border-slate-200 bg-white/80 backdrop-blur-md'
-          : 'border-b border-transparent bg-white'
+          ? 'border-b border-slate-200 bg-white/80 backdrop-blur-md dark:border-slate-800 dark:bg-slate-950/80'
+          : 'border-b border-transparent bg-white dark:bg-slate-950'
       }`}
     >
       <nav className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:h-20 sm:px-6 lg:px-8">
@@ -47,7 +48,7 @@ export default function Navbar() {
           <span className="flex size-9 items-center justify-center rounded-xl bg-brand-600">
             <Timer className="size-5 text-white" strokeWidth={2.5} />
           </span>
-          <span className="text-lg font-semibold tracking-tight text-slate-900">
+          <span className="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100">
             Focus10
           </span>
         </a>
@@ -58,7 +59,7 @@ export default function Navbar() {
             <li key={link.href}>
               <a
                 href={link.href}
-                className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900"
+                className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
               >
                 {t(link.key)}
               </a>
@@ -66,13 +67,14 @@ export default function Navbar() {
           ))}
         </ul>
 
-        <div className="hidden items-center gap-5 md:flex">
+        <div className="hidden items-center gap-3 md:flex lg:gap-5">
+          <ThemeSwitcher />
           <LanguageSwitcher />
           {!user && (
             <button
               type="button"
               onClick={openSignin}
-              className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900"
+              className="text-sm font-medium text-slate-600 transition-colors hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
             >
               {t('nav.signIn')}
             </button>
@@ -92,7 +94,7 @@ export default function Navbar() {
           onClick={() => setOpen(true)}
           aria-label={t('nav.openMenu')}
           aria-expanded={open}
-          className="-mr-2 rounded-lg p-2.5 text-slate-700 transition-colors hover:bg-slate-100 md:hidden"
+          className="-mr-2 rounded-lg p-2.5 text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 md:hidden"
         >
           <Menu className="size-6" />
         </button>
@@ -102,12 +104,12 @@ export default function Navbar() {
       {open && (
         <div className="fixed inset-0 z-50 md:hidden">
           <div
-            className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm"
+            className="absolute inset-0 bg-slate-900/20 backdrop-blur-sm dark:bg-slate-950/70"
             onClick={() => setOpen(false)}
           />
           {/* Телефонды көлденең ұстағанда мәзір экраннан асып кетуі мүмкін —
               сондықтан биіктігі шектеліп, ішінде скроллданады */}
-          <div className="absolute inset-x-0 top-0 max-h-[100dvh] overflow-y-auto overscroll-contain bg-white px-4 pb-[calc(2rem+env(safe-area-inset-bottom))] shadow-xl sm:px-6">
+          <div className="absolute inset-x-0 top-0 max-h-[100dvh] overflow-y-auto overscroll-contain bg-white px-4 dark:bg-slate-900 pb-[calc(2rem+env(safe-area-inset-bottom))] shadow-xl sm:px-6">
             <div className="flex h-16 items-center justify-between sm:h-20">
               <a
                 href="#top"
@@ -117,7 +119,7 @@ export default function Navbar() {
                 <span className="flex size-9 items-center justify-center rounded-xl bg-brand-600">
                   <Timer className="size-5 text-white" strokeWidth={2.5} />
                 </span>
-                <span className="text-lg font-semibold tracking-tight text-slate-900">
+                <span className="text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100">
                   Focus10
                 </span>
               </a>
@@ -125,7 +127,7 @@ export default function Navbar() {
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label={t('nav.closeMenu')}
-                className="-mr-2 rounded-lg p-2.5 text-slate-700 transition-colors hover:bg-slate-100"
+                className="-mr-2 rounded-lg p-2.5 text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
               >
                 <X className="size-6" />
               </button>
@@ -137,7 +139,7 @@ export default function Navbar() {
                   <a
                     href={link.href}
                     onClick={() => setOpen(false)}
-                    className="block rounded-lg px-3 py-3 text-base font-medium text-slate-900 transition-colors hover:bg-slate-50"
+                    className="block rounded-lg px-3 py-3 text-base font-medium text-slate-900 transition-colors hover:bg-slate-50 dark:text-slate-100 dark:hover:bg-slate-800"
                   >
                     {t(link.key)}
                   </a>
@@ -145,13 +147,16 @@ export default function Navbar() {
               ))}
             </ul>
 
-            <div className="mt-6 flex flex-col gap-3 border-t border-slate-200 pt-6">
-              <LanguageSwitcher className="self-start" />
+            <div className="mt-6 flex flex-col gap-3 border-t border-slate-200 pt-6 dark:border-slate-800">
+              <div className="flex flex-wrap gap-3">
+                <ThemeSwitcher />
+                <LanguageSwitcher />
+              </div>
               {!user && (
                 <button
                   type="button"
                   onClick={runAndClose(openSignin)}
-                  className="rounded-full border border-slate-300 px-5 py-3 text-center text-sm font-semibold text-slate-900 transition-colors hover:bg-slate-50"
+                  className="rounded-full border border-slate-300 px-5 py-3 text-center text-sm font-semibold text-slate-900 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800"
                 >
                   {t('nav.signIn')}
                 </button>

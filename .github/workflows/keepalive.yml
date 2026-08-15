@@ -1,0 +1,49 @@
+# Render-дің тегін жоспарында сервер 15 минут белсенділік болмаса ұйықтап
+# қалады да, келесі сұраныс оны оятады — ол 30–60 секундқа созылады. Сілтемені
+# алғаш ашқан адам үшін бұл «сайт бұзылған» болып көрінеді.
+#
+# Сондықтан әр 10 минут сайын /api/health-ке бір сұраныс жіберіп тұрамыз:
+# сервер ұйықтап үлгермейді. Маршрут дерекқорға тимейді, сондықтан бұл
+# сұраныстар қорға жүктеме түсірмейді.
+#
+# APP_URL — репозиторийдің Settings → Secrets and variables → Actions →
+# Variables бөліміндегі айнымалы (мысалы, https://focus10.onrender.com).
+# Ол қойылмаса, workflow сәтсіз болмай, жай ғана өткізіп жібереді.
+#
+# Ескерту: GitHub Actions-тың cron-ы дәл уақытында жүрмейді — жүктеме көп
+# кезде бірнеше минутқа кешігуі мүмкін. Кепілдік керек болса, cron-job.org
+# немесе UptimeRobot сияқты сыртқы сервисті қосуға болады.
+name: keepalive
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+# Бір мезгілде екі ping жүрудің қажеті жоқ
+concurrency:
+  group: keepalive
+  cancel-in-progress: true
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: /api/health
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+        run: |
+          if [ -z "$APP_URL" ]; then
+            echo "APP_URL айнымалысы қойылмаған — өткізіп жіберемін."
+            exit 0
+          fi
+
+          # Ұйқыдан оянуға уақыт беру үшін таймаут ұзақ әрі бір рет қайталаймыз
+          code=$(curl --silent --show-error --location \
+                      --max-time 90 --retry 1 --retry-delay 15 \
+                      --output /dev/null --write-out '%{http_code}' \
+                      "$APP_URL/api/health")
+
+          echo "GET $APP_URL/api/health → $code"
+          [ "$code" = "200" ]

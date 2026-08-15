@@ -11,6 +11,7 @@ import projectRoutes from './routes/projects.js'
 import taskRoutes from './routes/tasks.js'
 import timerRoutes from './routes/timer.js'
 import reportRoutes from './routes/reports.js'
+import planRoutes from './routes/plan.js'
 
 export function createApp() {
   const app = express()
@@ -35,6 +36,7 @@ export function createApp() {
   app.use('/api/tasks', taskRoutes)
   app.use('/api/timer', timerRoutes)
   app.use('/api/reports', reportRoutes)
+  app.use('/api/plan', planRoutes)
 
   app.use('/api', (req, res) => res.status(404).json({ error: req.t('app.noRoute') }))
 

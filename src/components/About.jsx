@@ -19,16 +19,16 @@ export default function About() {
         <div className="grid grid-cols-1 gap-x-16 gap-y-10 lg:grid-cols-2 lg:items-start">
           {/* Сол жақ: не үшін жасалды */}
           <div className="max-w-xl">
-            <p className="text-sm font-semibold tracking-wide text-brand-600 uppercase">
+            <p className="text-sm font-semibold tracking-wide text-brand-600 uppercase dark:text-brand-400">
               {t('about.eyebrow')}
             </p>
-            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-balance text-slate-900 sm:text-4xl md:text-5xl">
+            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-balance text-slate-900 sm:text-4xl md:text-5xl dark:text-slate-100">
               {t('about.title')}
             </h2>
-            <p className="mt-5 text-base text-pretty text-slate-600 sm:mt-6 sm:text-lg">
+            <p className="mt-5 text-base text-pretty text-slate-600 sm:mt-6 sm:text-lg dark:text-slate-400">
               {t('about.lead')}
             </p>
-            <p className="mt-4 text-sm/6 text-pretty text-slate-500 sm:text-base/7">
+            <p className="mt-4 text-sm/6 text-pretty text-slate-500 sm:text-base/7 dark:text-slate-400">
               {t('about.body')}
             </p>
 
@@ -36,12 +36,12 @@ export default function About() {
               href={REPO_URL}
               target="_blank"
               rel="noreferrer"
-              className="mt-6 inline-flex items-center gap-2 rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-900 transition-colors hover:bg-slate-50 sm:mt-8"
+              className="mt-6 inline-flex items-center gap-2 rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-900 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800 sm:mt-8"
             >
               {t('about.repoCta')}
-              <ExternalLink className="size-4 text-slate-400" />
+              <ExternalLink className="size-4 text-slate-400 dark:text-slate-500" />
             </a>
-            <p className="mt-3 text-xs text-slate-400">{t('about.repoNote')}</p>
+            <p className="mt-3 text-xs text-slate-400 dark:text-slate-500">{t('about.repoNote')}</p>
           </div>
 
           {/* Оң жақ: ұстанымдар */}
@@ -52,16 +52,16 @@ export default function About() {
               return (
                 <li
                   key={point.title}
-                  className="flex gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:gap-5 sm:p-6"
+                  className="flex gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:gap-5 sm:p-6"
                 >
-                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600 sm:size-11">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-950 dark:text-brand-400 sm:size-11">
                     <Icon className="size-5" />
                   </span>
                   <div>
-                    <h3 className="text-base font-semibold tracking-tight text-slate-900">
+                    <h3 className="text-base font-semibold tracking-tight text-slate-900 dark:text-slate-100">
                       {point.title}
                     </h3>
-                    <p className="mt-2 text-sm/6 text-slate-500">{point.body}</p>
+                    <p className="mt-2 text-sm/6 text-slate-500 dark:text-slate-400">{point.body}</p>
                   </div>
                 </li>
               )

@@ -1,5 +1,10 @@
 import { createApp } from './app.js'
-import { closePool, migrate, purgeExpiredSessions } from './db.js'
+import {
+  closePool,
+  migrate,
+  purgeExpiredSessions,
+  purgeExpiredTokens,
+} from './db.js'
 
 const PORT = Number(process.env.PORT ?? 3080)
 
@@ -10,10 +15,10 @@ const server = createApp().listen(PORT, () => {
   console.log(`Focus10 API → http://localhost:${PORT}`)
 })
 
-// Мерзімі өткен сессияларды сағат сайын тазалап отырамыз
+// Мерзімі өткен сессиялар мен токендерді сағат сайын тазалап отырамыз
 const sweeper = setInterval(() => {
-  purgeExpiredSessions().catch((error) =>
-    console.error('Сессияларды тазалау сәтсіз:', error),
+  Promise.all([purgeExpiredSessions(), purgeExpiredTokens()]).catch((error) =>
+    console.error('Ескі жазбаларды тазалау сәтсіз:', error),
   )
 }, 60 * 60 * 1000)
 sweeper.unref()

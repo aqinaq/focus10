@@ -26,6 +26,16 @@ export function formatClock(seconds) {
   return hours > 0 ? `${hours}:${minutes}:${secs}` : `${minutes}:${secs}`
 }
 
+/** "2026-08-20" → «20 там.» / "20 Aug». Жыл көрсетілмейді — мерзім жақын. */
+export function formatDate(isoDate, lang = DEFAULT_LANG) {
+  const [year, month, day] = isoDate.split('-').map(Number)
+
+  return new Intl.DateTimeFormat(translate(lang, 'format.locale'), {
+    day: 'numeric',
+    month: 'short',
+  }).format(new Date(year, month - 1, day))
+}
+
 /** "2026-08-06" → «Бс» / "Thu" */
 export function weekdayLabel(isoDate, lang = DEFAULT_LANG) {
   const [year, month, day] = isoDate.split('-').map(Number)

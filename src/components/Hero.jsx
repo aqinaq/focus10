@@ -18,36 +18,36 @@ export default function Hero() {
       {/* фондық жұмсақ сәуле */}
       <div
         aria-hidden="true"
-        className="glow pointer-events-none absolute -top-40 left-1/2 -z-10 h-[36rem] w-[64rem] -translate-x-1/2 opacity-[0.07]"
+        className="glow pointer-events-none absolute -top-40 left-1/2 -z-10 h-[36rem] w-[64rem] -translate-x-1/2 opacity-[0.07] dark:opacity-[0.16]"
       />
 
       <div className="mx-auto max-w-7xl px-4 pt-12 pb-20 sm:px-6 sm:pt-24 sm:pb-32 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
           <a
             href="#features"
-            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs text-balance text-slate-600 shadow-sm transition-colors hover:border-brand-200 hover:text-slate-900 sm:py-1.5 sm:text-sm"
+            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs text-balance text-slate-600 shadow-sm transition-colors hover:border-brand-200 hover:text-slate-900 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:border-brand-800 dark:hover:text-slate-100 sm:py-1.5 sm:text-sm"
           >
-            <Sparkles className="size-4 shrink-0 text-brand-600" />
+            <Sparkles className="size-4 shrink-0 text-brand-600 dark:text-brand-400" />
             <span>{t('hero.badge')}</span>
             <ArrowRight className="size-4 shrink-0" />
           </a>
 
-          <h1 className="mt-6 text-4xl font-semibold tracking-tight text-balance text-slate-900 sm:mt-8 sm:text-5xl md:text-6xl lg:text-7xl">
+          <h1 className="mt-6 text-4xl font-semibold tracking-tight text-balance text-slate-900 sm:mt-8 sm:text-5xl dark:text-slate-100 md:text-6xl lg:text-7xl">
             {t('hero.titleLead')}{' '}
-            <span className="relative whitespace-nowrap text-brand-600">
+            <span className="relative whitespace-nowrap text-brand-600 dark:text-brand-400">
               {t('hero.titleAccent')}
               <svg
                 aria-hidden="true"
                 viewBox="0 0 200 12"
                 preserveAspectRatio="none"
-                className="absolute -bottom-1 left-0 h-2.5 w-full fill-brand-200"
+                className="absolute -bottom-1 left-0 h-2.5 w-full fill-brand-200 dark:fill-brand-800"
               >
                 <path d="M0 8c40-6 160-6 200 0v4H0z" />
               </svg>
             </span>
           </h1>
 
-          <p className="mx-auto mt-6 max-w-2xl text-base text-pretty text-slate-600 sm:mt-8 sm:text-xl">
+          <p className="mx-auto mt-6 max-w-2xl text-base text-pretty text-slate-600 sm:mt-8 sm:text-xl dark:text-slate-400">
             {t('hero.subtitle')}
           </p>
 
@@ -63,17 +63,17 @@ export default function Hero() {
             <button
               type="button"
               onClick={openDemo}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-7 py-3.5 text-base font-semibold text-slate-900 transition-colors hover:bg-slate-50 sm:w-auto"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-7 py-3.5 text-base font-semibold text-slate-900 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800 sm:w-auto"
             >
               <Play className="size-4 fill-current" />
               {t('hero.watchDemo')}
             </button>
           </div>
 
-          <ul className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-slate-500">
+          <ul className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-slate-500 dark:text-slate-400">
             {trust.map((item) => (
               <li key={item} className="flex items-center gap-1.5">
-                <Check className="size-4 text-brand-600" strokeWidth={3} />
+                <Check className="size-4 text-brand-600 dark:text-brand-400" strokeWidth={3} />
                 {item}
               </li>
             ))}
@@ -94,7 +94,7 @@ export default function Hero() {
             aria-label={t('hero.watchDemoAria')}
             className="group block w-full cursor-pointer text-left"
           >
-            <span className="relative block overflow-hidden rounded-2xl border border-slate-200 shadow-2xl shadow-slate-900/10">
+            <span className="relative block overflow-hidden rounded-2xl border border-slate-200 shadow-2xl shadow-slate-900/10 dark:border-slate-800">
               <img
                 src="/app-dashboard.png"
                 width={2720}
@@ -103,14 +103,14 @@ export default function Hero() {
                 className="block w-full"
               />
               <span className="absolute inset-0 flex items-center justify-center bg-slate-900/0 opacity-0 transition-all group-hover:bg-slate-900/10 group-hover:opacity-100">
-                <span className="flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow-lg">
+                <span className="flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow-lg dark:bg-slate-900 dark:text-slate-100">
                   <Play className="size-4 fill-current" />
                   {t('hero.screenshotCta')}
                 </span>
               </span>
             </span>
           </button>
-          <p className="mt-4 text-center text-xs text-slate-400">
+          <p className="mt-4 text-center text-xs text-slate-400 dark:text-slate-500">
             {t('hero.screenshotNote')}
           </p>
         </div>
@@ -119,10 +119,10 @@ export default function Hero() {
         <dl className="mx-auto mt-12 grid max-w-4xl grid-cols-2 gap-x-6 gap-y-8 sm:mt-20 sm:gap-8 lg:grid-cols-4">
           {facts.map((fact) => (
             <div key={fact.value} className="text-center">
-              <dt className="text-2xl font-semibold tracking-tight text-slate-900">
+              <dt className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
                 {fact.value}
               </dt>
-              <dd className="mt-2 text-sm text-pretty text-slate-500">
+              <dd className="mt-2 text-sm text-pretty text-slate-500 dark:text-slate-400">
                 {fact.label}
               </dd>
             </div>

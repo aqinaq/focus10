@@ -14,7 +14,7 @@ export default function ToastStack({ toasts, onDismiss }) {
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className="pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-xl"
+          className="pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-xl dark:bg-slate-800 dark:ring-1 dark:ring-slate-700"
         >
           <Info className="mt-0.5 size-4 shrink-0 text-brand-400" />
           <span className="flex-1">{toast.message}</span>

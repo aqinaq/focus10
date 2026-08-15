@@ -17,6 +17,23 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Сессия біткенде (немесе басқа құрылғыда құпиясөз ауысқанда) серверден 401
+ * келеді. Ондайда қолданушыны күйден шығару керек, әйтпесе ол ескірген
+ * dashboard-та қалып, әр әрекетіне тек хабарлама алады да, ештеңе жұмыс
+ * істемейді. Кім хабардар болатынын AuthProvider шешеді.
+ */
+let onUnauthorized = null
+
+export function setUnauthorizedHandler(handler) {
+  onUnauthorized = handler
+}
+
+// Бұл екеуінің 401-і сессияның бітуін білдірмейді: /auth/login «құпиясөз
+// қате» дегенді де 401-мен қайтарады, ал /auth/me кірмеген қонақта әрқашан
+// 401 болады — оны AuthProvider өзі өңдейді.
+const EXPECTED_401 = new Set(['/auth/login', '/auth/me'])
+
 async function request(path, { method = 'GET', body } = {}) {
   const response = await fetch(`/api${path}`, {
     method,
@@ -24,6 +41,8 @@ async function request(path, { method = 'GET', body } = {}) {
     headers: body === undefined ? undefined : { 'content-type': 'application/json' },
     body: body === undefined ? undefined : JSON.stringify(body),
   })
+
+  if (response.status === 401 && !EXPECTED_401.has(path)) onUnauthorized?.()
 
   if (response.status === 204) return null
 
@@ -46,6 +65,11 @@ export const api = {
   me: () => request('/auth/me'),
   changePassword: (payload) =>
     request('/auth/password', { method: 'PATCH', body: payload }),
+  forgotPassword: (email) =>
+    request('/auth/forgot', { method: 'POST', body: { email } }),
+  resetPassword: (payload) => request('/auth/reset', { method: 'POST', body: payload }),
+  verifyEmail: (token) => request('/auth/verify', { method: 'POST', body: { token } }),
+  resendVerification: () => request('/auth/verify/resend', { method: 'POST' }),
   deleteAccount: (password) =>
     request('/auth/account', { method: 'DELETE', body: { password } }),
 
@@ -63,4 +87,10 @@ export const api = {
   stopTimer: () => request('/timer/stop', { method: 'POST' }),
 
   week: () => request('/reports/week'),
+  insights: () => request('/reports/insights'),
+
+  plan: () => request('/plan'),
+  checkIn: (minutes) =>
+    request('/plan', { method: 'POST', body: { capacity_minutes: minutes } }),
+  clearPlan: () => request('/plan', { method: 'DELETE' }),
 }

@@ -33,3 +33,15 @@ services:
       # Supabase → Project Settings → Database → Connection string
       - key: DATABASE_URL
         sync: false
+      # Құпиясөзді қалпына келтіру мен email растау хаттары осы арқылы
+      # жіберіледі (resend.com → API Keys). Қойылмаса, тиісті маршруттар
+      # 503 қайтарады — қолданбаның қалған бөлігі жұмысын жалғастырады.
+      - key: RESEND_API_KEY
+        sync: false
+      # Мысалы: Focus10 <hello@saidomain.kz>. Домен Resend-те расталуы керек.
+      - key: MAIL_FROM
+        sync: false
+      # Хаттағы сілтеменің домені. Қойылмаса, Render өзі беретін
+      # RENDER_EXTERNAL_URL қолданылады — өз домені болғанда ғана керек.
+      - key: APP_URL
+        sync: false

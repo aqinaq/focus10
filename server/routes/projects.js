@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { one, pool, query } from '../db.js'
 import { requireAuth } from '../auth.js'
+import { toId } from '../lib/ids.js'
 
 const router = Router()
 router.use(requireAuth)
@@ -44,10 +45,11 @@ router.post('/', async (req, res, next) => {
 
 router.delete('/:id', async (req, res, next) => {
   try {
-    const id = Number(req.params.id)
+    // Postgres сан күтеді — «abc» не int4 шегінен асқан сан келсе,
+    // оны 500 емес, 404 деп қайтарамыз
+    const id = toId(req.params.id)
 
-    // Postgres сан күтеді — «abc» келсе, оны 500 емес, 404 деп қайтарамыз
-    if (!Number.isInteger(id)) {
+    if (id === null) {
       return res.status(404).json({ error: req.t('project.notFound') })
     }
 

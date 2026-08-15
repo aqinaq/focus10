@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { I18nContext } from './i18nContext'
 import { DEFAULT_LANG, isLang, normalizeLang, translate } from './messages'
 import { writeLangCookie } from './langCookie'
-import { formatClock, formatDuration, weekdayLabel } from '../lib/format'
+import { formatClock, formatDate, formatDuration, weekdayLabel } from '../lib/format'
 
 const STORAGE_KEY = 'focus10.lang'
 
@@ -72,6 +72,7 @@ export function I18nProvider({ children }) {
       setLang,
       t: (path, vars) => translate(lang, path, vars),
       formatDuration: (seconds) => formatDuration(seconds, lang),
+      formatDate: (isoDate) => formatDate(isoDate, lang),
       weekdayLabel: (isoDate) => weekdayLabel(isoDate, lang),
       formatClock,
     }),

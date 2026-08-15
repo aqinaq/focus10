@@ -16,8 +16,8 @@ export default function ProjectsPanel({ projects, busy, onCreate, onDelete }) {
   }
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
-      <h2 className="text-lg font-semibold text-slate-900">{t('projects.title')}</h2>
+    <section className="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 sm:p-6">
+      <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{t('projects.title')}</h2>
 
       <form onSubmit={submit} className="mt-4 flex gap-2">
         <input
@@ -27,7 +27,7 @@ export default function ProjectsPanel({ projects, busy, onCreate, onDelete }) {
           maxLength={60}
           enterKeyHint="done"
           aria-label={t('projects.newAria')}
-          className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none transition-colors placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 sm:py-2"
+          className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-2.5 text-sm outline-none transition-colors placeholder:text-slate-400 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:border-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:ring-brand-900 sm:py-2"
         />
         <button
           type="submit"
@@ -40,15 +40,15 @@ export default function ProjectsPanel({ projects, busy, onCreate, onDelete }) {
       </form>
 
       {projects.length === 0 ? (
-        <p className="mt-4 text-sm text-slate-500">{t('projects.empty')}</p>
+        <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">{t('projects.empty')}</p>
       ) : (
-        <ul className="mt-4 divide-y divide-slate-100 border-t border-slate-100">
+        <ul className="mt-4 divide-y divide-slate-100 border-t border-slate-100 dark:divide-slate-800 dark:border-slate-800">
           {projects.map((project) => (
             <li key={project.id} className="group flex items-center gap-3 py-1.5 sm:py-2.5">
-              <span className="min-w-0 flex-1 truncate text-sm text-slate-900">
+              <span className="min-w-0 flex-1 truncate text-sm text-slate-900 dark:text-slate-100">
                 {project.name}
               </span>
-              <span className="shrink-0 text-xs text-slate-400">
+              <span className="shrink-0 text-xs text-slate-400 dark:text-slate-500">
                 {t('projects.openCount', { count: project.open_tasks })}
               </span>
               <button
@@ -56,7 +56,7 @@ export default function ProjectsPanel({ projects, busy, onCreate, onDelete }) {
                 onClick={() => onDelete(project)}
                 disabled={busy}
                 aria-label={t('projects.deleteAria', { name: project.name })}
-                className="flex size-9 shrink-0 items-center justify-center rounded-full text-slate-300 transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-50 sm:size-7"
+                className="flex size-9 shrink-0 items-center justify-center rounded-full text-slate-300 transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-50 dark:text-slate-600 dark:hover:bg-red-950/40 dark:hover:text-red-400 sm:size-7"
               >
                 <Trash2 className="size-3.5" />
               </button>
@@ -65,7 +65,7 @@ export default function ProjectsPanel({ projects, busy, onCreate, onDelete }) {
         </ul>
       )}
 
-      <p className="mt-4 text-xs text-slate-400">{t('projects.note')}</p>
+      <p className="mt-4 text-xs text-slate-400 dark:text-slate-500">{t('projects.note')}</p>
     </section>
   )
 }

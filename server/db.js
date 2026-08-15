@@ -27,6 +27,11 @@ export const APP_TZ = process.env.APP_TZ ?? 'Asia/Almaty'
 // шықпауы үшін санға айналдырамыз.
 types.setTypeParser(types.builtins.INT8, (value) => Number(value))
 
+// DATE-ті pg әдепкіде Date нысанына айналдырады да, JSON-да толық ISO уақыт
+// болып шығады — сонда «2026-08-15» деген күн белдеуге қарай бір күнге
+// жылжып кетуі мүмкін. Күнді қалай сақталса, солай — жол күйінде аламыз.
+types.setTypeParser(types.builtins.DATE, (value) => value)
+
 export const pool = new Pool({
   connectionString,
   // Supabase/Neon SSL талап етеді; жергілікті қорға ол қажет емес
@@ -55,12 +60,16 @@ export async function one(text, params) {
 
 const SCHEMA = `
   CREATE TABLE IF NOT EXISTS users (
-    id            INTEGER     PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    name          TEXT        NOT NULL,
-    email         TEXT        NOT NULL,
-    password_hash TEXT        NOT NULL,
-    created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+    id                INTEGER     PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name              TEXT        NOT NULL,
+    email             TEXT        NOT NULL,
+    password_hash     TEXT        NOT NULL,
+    email_verified_at TIMESTAMPTZ,
+    created_at        TIMESTAMPTZ NOT NULL DEFAULT now()
   );
+
+  -- Бұрын құрылған қорларда бағана болмауы мүмкін
+  ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified_at TIMESTAMPTZ;
 
   -- citext кез келген жерде қолжетімді емес, сондықтан регистрге тәуелсіз
   -- бірегейлікті индекспен қамтамасыз етеміз
@@ -73,6 +82,19 @@ const SCHEMA = `
     expires_at TIMESTAMPTZ NOT NULL
   );
 
+  -- Құпиясөзді қалпына келтіру мен email растау сілтемелері. Токеннің өзі
+  -- емес, оның sha256 хеші сақталады: қорға қол жеткізген адам сілтемені
+  -- қалпына келтіре алмауы керек. Бір токен — бір рет (қолданылса, өшеді).
+  CREATE TABLE IF NOT EXISTS auth_tokens (
+    token_hash TEXT        PRIMARY KEY,
+    user_id    INTEGER     NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    kind       TEXT        NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    expires_at TIMESTAMPTZ NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_auth_tokens_user ON auth_tokens(user_id, kind);
+
   CREATE TABLE IF NOT EXISTS projects (
     id         INTEGER     PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     user_id    INTEGER     NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -81,14 +103,49 @@ const SCHEMA = `
   );
 
   CREATE TABLE IF NOT EXISTS tasks (
-    id           INTEGER     PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    user_id      INTEGER     NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    project_id   INTEGER     REFERENCES projects(id) ON DELETE SET NULL,
-    title        TEXT        NOT NULL,
-    done         BOOLEAN     NOT NULL DEFAULT false,
-    created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
-    completed_at TIMESTAMPTZ
+    id               INTEGER     PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    user_id          INTEGER     NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    project_id       INTEGER     REFERENCES projects(id) ON DELETE SET NULL,
+    title            TEXT        NOT NULL,
+    done             BOOLEAN     NOT NULL DEFAULT false,
+    -- Жоспарлауға керек үш өріс: қанша уақыт алады, қаншалық маңызды,
+    -- қашанға дейін бітуі керек. Үшеуі де міндетті емес — бос қалса,
+    -- жоспарлағыш әдепкі мәнмен жұмыс істей береді.
+    estimate_minutes INTEGER,
+    priority         SMALLINT    NOT NULL DEFAULT 2,
+    due_date         DATE,
+    created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+    completed_at     TIMESTAMPTZ
   );
+
+  -- Бұрын құрылған қорларда бұл бағаналар болмауы мүмкін
+  ALTER TABLE tasks ADD COLUMN IF NOT EXISTS estimate_minutes INTEGER;
+  ALTER TABLE tasks ADD COLUMN IF NOT EXISTS priority SMALLINT NOT NULL DEFAULT 2;
+  ALTER TABLE tasks ADD COLUMN IF NOT EXISTS due_date DATE;
+
+  -- Күндік жоспар: «бүгін қанша уақытым бар» деген жауап пен содан шыққан
+  -- тізім. Бір күнге бір жоспар — қайта жоспарласа, ескісі ауысады.
+  CREATE TABLE IF NOT EXISTS day_plans (
+    id               INTEGER     PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    user_id          INTEGER     NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    day              DATE        NOT NULL,
+    capacity_minutes INTEGER     NOT NULL,
+    created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+  );
+
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_day_plans_user_day ON day_plans(user_id, day);
+
+  CREATE TABLE IF NOT EXISTS plan_items (
+    id       INTEGER  PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    plan_id  INTEGER  NOT NULL REFERENCES day_plans(id) ON DELETE CASCADE,
+    task_id  INTEGER  NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    minutes  INTEGER  NOT NULL,
+    position INTEGER  NOT NULL,
+    reason   TEXT     NOT NULL DEFAULT 'pace'
+  );
+
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_plan_items_unique ON plan_items(plan_id, task_id);
 
   CREATE TABLE IF NOT EXISTS time_entries (
     id         INTEGER     PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
@@ -118,6 +175,11 @@ export async function migrate() {
 /** Мерзімі өткен сессияларды тазалау. */
 export async function purgeExpiredSessions() {
   await pool.query('DELETE FROM sessions WHERE expires_at <= now()')
+}
+
+/** Мерзімі өткен қалпына келтіру/растау токендерін тазалау. */
+export async function purgeExpiredTokens() {
+  await pool.query('DELETE FROM auth_tokens WHERE expires_at <= now()')
 }
 
 /**

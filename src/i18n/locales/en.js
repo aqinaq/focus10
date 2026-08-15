@@ -16,6 +16,14 @@ export default {
     dismissToast: 'Dismiss notification',
     language: 'Language',
     languageSwitch: 'Change language',
+    theme: 'Theme',
+    themeSwitch: 'Change theme',
+  },
+
+  theme: {
+    system: 'System',
+    light: 'Light',
+    dark: 'Dark',
   },
 
   nav: {
@@ -30,7 +38,7 @@ export default {
   },
 
   hero: {
-    badge: 'New: CSV export and per-project reporting',
+    badge: 'New: insights read out of your own weekly data',
     titleLead: 'Focus on what',
     titleAccent: 'matters',
     subtitle:
@@ -47,8 +55,8 @@ export default {
     facts: [
       { value: '$0', label: 'Every feature is free — there is no billing yet' },
       { value: 'CSV', label: 'Download your data whenever you want' },
-      { value: 'SQLite', label: 'Your data in one file, on your own server' },
-      { value: '48 tests', label: 'Every API route is covered by an automated test' },
+      { value: 'Postgres', label: 'Your data in a real database, exportable at any time' },
+      { value: '118 tests', label: 'Every API route is covered by an automated test' },
     ],
   },
 
@@ -72,6 +80,21 @@ export default {
         title: 'Reports and CSV',
         description:
           'The weekly chart and the per-project split are built from real data. Export 7 days, 30 days or your whole history to CSV and send it to a client.',
+      },
+      {
+        title: 'A plan for the day you actually have',
+        description:
+          'Say how much time today is really yours — all of it, or twenty minutes — and the app picks what to work on and for how long. What does not fit moves to the coming days instead of piling onto tonight.',
+      },
+      {
+        title: 'Insights from your own data',
+        description:
+          'The dashboard reads the last 28 days back to you: the three hours you actually focus best, your streak, how this week compares to the last, and how much of your work ends inside ten minutes.',
+      },
+      {
+        title: 'You can get your account back',
+        description:
+          'Confirm your email once and a forgotten password is a link away. Reset links are single-use, expire in an hour and sign every other device out.',
       },
       {
         title: 'Your data is yours',
@@ -152,9 +175,10 @@ export default {
     signIn: 'Sign in',
     stack: [
       'React 19 + Vite + Tailwind CSS',
-      'Express 5 + SQLite (node:sqlite)',
-      '48 automated tests cover the API',
+      'Express 5 + Postgres (node-postgres)',
+      '118 automated tests cover the API',
     ],
+    plannedNote: 'Not built yet — nothing here is clickable.',
     planned: ['PDF reports', 'Invoicing', 'Team mode', 'Calendar sync'],
     disclaimer:
       'The product is still early: legal documents (Privacy, Terms) are not ready yet.',
@@ -178,11 +202,46 @@ export default {
     noAccount: 'No account yet?',
     switchToSignin: 'Sign in',
     switchToSignup: 'Sign up',
+    forgotLink: 'Forgot it?',
+    forgotTitle: 'Forgot your password?',
+    forgotSubtitle: 'Enter your email and we will send you a reset link.',
+    forgotSubmit: 'Send the link',
+    forgotSentTitle: 'Check your inbox',
+    forgotSentBody:
+      'If that email has an account, a reset link is on its way. The link is valid for 1 hour.',
+    backToSignin: 'Back to sign in',
     errors: {
       name: 'Enter your name (at least 2 characters).',
       email: 'Enter a valid email.',
       password: 'Password must be at least 8 characters.',
     },
+  },
+
+  reset: {
+    title: 'New password',
+    body: 'Pick a new password — at least 8 characters.',
+    submit: 'Save the password',
+    noToken: 'The link is incomplete. Open the full link from the email.',
+    done: 'Password changed. Sign in with the new one.',
+  },
+
+  verify: {
+    working: 'Confirming…',
+    doneTitle: 'Email confirmed',
+    doneBody:
+      'Thank you. If you ever forget your password, you can now get the account back through this address.',
+    failedTitle: 'That link does not work',
+    failedBody: 'It has expired or has already been used.',
+    banner:
+      '{{email}} is not confirmed yet. Confirm it so you can recover the account if you forget your password.',
+    resend: 'Send the link again',
+    resent: 'Confirmation link sent.',
+  },
+
+  waking: {
+    title: 'Waking the server up…',
+    body:
+      'On the free hosting plan the server goes to sleep when nobody is using it. The first load can take up to a minute — everything after that is fast.',
   },
 
   demo: {
@@ -259,9 +318,107 @@ export default {
     },
   },
 
+  insights: {
+    title: 'What your data says',
+    sample: 'Last {{days}} days · {{sessions}} sessions',
+    notReady:
+      'Not enough tracked time to say anything honest yet. Track about {{sessions}} more sessions and the patterns show up here.',
+    stripAlt: 'Tracked time by hour of the day.',
+    items: {
+      peakWindow:
+        'Your deepest stretch is {{from}}–{{to}} — {{share}}% of everything you track happens there.',
+      trend: {
+        up: 'This week is {{percent}}% up on last week: {{current}} against {{previous}}.',
+        down: 'This week is {{percent}}% down on last week: {{current}} against {{previous}}.',
+      },
+      streak: '{{days}} days in a row with time on the clock.',
+      bestWeekday: '{{weekday}} is your strongest day — {{duration}} on average.',
+      sessionLength:
+        'A typical session runs {{median}}; the longest one was {{longest}}.',
+      fragmentation:
+        '{{percent}}% of your sessions end inside 10 minutes ({{sessions}} of them) — that is switching, not focus.',
+      topProject: '{{project}} took {{share}}% of this week.',
+    },
+  },
+
+  plan: {
+    title: 'Today’s plan',
+    replan: 'Plan again',
+    checkIn: {
+      title: 'How much time do you have today?',
+      morning: 'Good morning.',
+      afternoon: 'The day is already moving.',
+      evening: 'A late start is still a start.',
+      body:
+        'Answer with what is actually left of your day. The plan is built from that, and everything it does not fit moves to the days ahead — you are not meant to do a week in one evening.',
+      customLabel: 'or',
+      customUnit: 'hours',
+      submit: 'Plan my day',
+    },
+    presets: {
+      full: 'Free all day',
+      half: 'Half a day',
+      short: 'A couple of hours',
+      tiny: 'Not my day',
+    },
+    progress: '{{done}} done of {{planned}}',
+    capacityNote: 'You said you have {{capacity}} today.',
+    spare: '{{spare}} of it is still free.',
+    allDone: 'Today’s plan is done. Anything past this is a bonus, not a debt.',
+    emptyItems:
+      'Nothing to plan: no open task has time left on it. Add one below and it will be waiting here tomorrow morning.',
+    itemProgress: '{{done}} so far',
+    itemDone: 'Finished',
+    reasons: {
+      overdue: 'Overdue',
+      dueToday: 'Due today',
+    },
+    due: {
+      today: 'Today',
+      overdue: 'Overdue',
+    },
+    dueChoices: {
+      none: 'No deadline',
+      today: 'By today',
+      tomorrow: 'By tomorrow',
+      week: 'This week',
+      month: 'This month',
+    },
+    priority: {
+      1: 'Must do',
+      2: 'Should do',
+      3: 'Nice to do',
+    },
+    fields: {
+      estimate: 'How long it takes',
+      noEstimate: 'No estimate',
+      priority: 'Priority',
+      due: 'Deadline',
+    },
+    outlook: {
+      week: {
+        ok: 'Next {{days}} days: {{needed}} left across {{tasks}} things — about {{perDay}} a day.',
+        tight:
+          'Next {{days}} days: {{needed}} left — about {{perDay}} a day. It fits, but there is no slack in it.',
+        over: 'Next {{days}} days: {{needed}} left — that is {{perDay}} a day. Move a deadline or drop something now, while it is still your choice.',
+      },
+      month: {
+        ok: 'Next {{days}} days: {{needed}} in total — about {{perDay}} a day.',
+        tight: 'Next {{days}} days: {{needed}} in total — about {{perDay}} a day.',
+        over: 'Next {{days}} days: {{needed}} in total — {{perDay}} a day. That is more than a month holds.',
+      },
+    },
+    backlog: {
+      title: 'Not today ({{count}})',
+      riskySummary: '{{count}} of them will not fit in the days that are left.',
+      left: '{{duration}} left · {{days}} d',
+    },
+  },
+
   task: {
     editAria: 'Edit task name',
     editTitle: 'Click to edit',
+    saveEdit: 'Save',
     markUndone: 'Mark as not done',
     markDone: 'Mark as done',
     stopTimer: 'Stop the timer',
@@ -299,6 +456,9 @@ export default {
     languageTitle: 'Language',
     languageBody:
       'The language you pick is stored in this browser and is used for server messages too.',
+    themeTitle: 'Theme',
+    themeBody:
+      'On “System” the app follows your device setting. Your choice is stored in this browser.',
     passwordTitle: 'Change password',
     passwordBody: 'Changing it signs you out of every other device.',
     currentPassword: 'Current password',
@@ -314,10 +474,21 @@ export default {
   },
 
   format: {
+    // Күн атауын Intl осы жермен алады
+    locale: 'en-GB',
     seconds: '{{value}}s',
     minutes: '{{value}}m',
     hoursMinutes: '{{hours}}h {{minutes}}m',
     weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+    weekdaysLong: [
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+    ],
   },
 
   api: {

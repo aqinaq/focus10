@@ -31,21 +31,21 @@ export default class ErrorBoundary extends Component {
     const t = this.context?.t ?? ((path) => translate(DEFAULT_LANG, path))
 
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50 px-6">
-        <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center">
-          <span className="mx-auto flex size-14 items-center justify-center rounded-full bg-red-50">
-            <TriangleAlert className="size-7 text-red-600" />
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 px-6 dark:bg-slate-950">
+        <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center dark:border-slate-800 dark:bg-slate-900">
+          <span className="mx-auto flex size-14 items-center justify-center rounded-full bg-red-50 dark:bg-red-950/40">
+            <TriangleAlert className="size-7 text-red-600 dark:text-red-400" />
           </span>
 
-          <h1 className="mt-6 text-2xl font-semibold tracking-tight text-slate-900">
+          <h1 className="mt-6 text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
             {t('errorBoundary.title')}
           </h1>
-          <p className="mt-3 text-base/7 text-slate-600">
+          <p className="mt-3 text-base/7 text-slate-600 dark:text-slate-400">
             {t('errorBoundary.body')}
           </p>
 
           {import.meta.env.DEV && (
-            <pre className="mt-6 overflow-x-auto rounded-xl bg-slate-900 p-4 text-left text-xs text-slate-200">
+            <pre className="mt-6 overflow-x-auto rounded-xl bg-slate-900 p-4 text-left text-xs text-slate-200 dark:bg-slate-950 dark:text-slate-300">
               {this.state.error.message}
             </pre>
           )}

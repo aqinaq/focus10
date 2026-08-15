@@ -22,6 +22,28 @@ const messages = {
     'auth.badCredentials': 'Email не құпиясөз қате.',
     'auth.currentPasswordWrong': 'Ағымдағы құпиясөз қате.',
     'auth.passwordWrong': 'Құпиясөз қате.',
+    'auth.linkInvalid': 'Сілтеменің мерзімі өткен немесе ол қолданылып қойған.',
+    'auth.mailDisabled':
+      'Қазір хат жіберу мүмкін емес: серверде пошта бапталмаған.',
+    'auth.mailFailed': 'Хат жіберілмеді. Сәл кейінірек қайталап көр.',
+    'auth.alreadyVerified': 'Бұл email расталып қойған.',
+
+    'mail.verify.subject': 'Focus10: email-іңді растап қой',
+    'mail.verify.body':
+      'Сәлем, {{name}}!\n\n' +
+      'Focus10-да аккаунт ашқаның үшін рақмет. Email-іңді растау үшін мына ' +
+      'сілтемеге өт:\n\n{{url}}\n\n' +
+      'Сілтеме 24 сағат жарамды. Егер аккаунтты сен ашпаған болсаң, бұл ' +
+      'хатты елемей қоя бер.',
+    'mail.reset.subject': 'Focus10: құпиясөзді қалпына келтіру',
+    'mail.reset.body':
+      'Сәлем, {{name}}!\n\n' +
+      'Құпиясөзді ауыстыру үшін мына сілтемеге өт:\n\n{{url}}\n\n' +
+      'Сілтеме 1 сағат жарамды әрі бір рет қана жұмыс істейді. Егер бұны сен ' +
+      'сұрамаған болсаң, ештеңе істеудің қажеті жоқ: құпиясөзің өзгермейді.',
+
+    'rateLimit.tooMany':
+      'Тым көп әрекет. {{seconds}} секундтан кейін қайталап көр.',
 
     'project.nameLength': 'Жоба аты 1–60 таңба болуы керек.',
     'project.notFound': 'Жоба табылмады.',
@@ -29,6 +51,12 @@ const messages = {
 
     'task.titleLength': 'Тапсырма аты 1–200 таңба болуы керек.',
     'task.notFound': 'Тапсырма табылмады.',
+    'task.estimateRange': 'Болжалды уақыт {{min}}–{{max}} минут аралығында болуы керек.',
+    'task.priorityInvalid': 'Маңыздылық дұрыс емес.',
+    'task.dueInvalid': 'Мерзім күні дұрыс емес.',
+
+    'plan.capacityRange':
+      'Бүгінгі уақытың {{min}}–{{max}} минут аралығында болуы керек.',
 
     'timer.taskDone': 'Аяқталған тапсырмаға таймер қосылмайды.',
     'timer.notRunning': 'Жүріп тұрған таймер жоқ.',
@@ -63,6 +91,26 @@ const messages = {
     'auth.badCredentials': 'Wrong email or password.',
     'auth.currentPasswordWrong': 'Your current password is wrong.',
     'auth.passwordWrong': 'Wrong password.',
+    'auth.linkInvalid': 'That link has expired or has already been used.',
+    'auth.mailDisabled': 'Email cannot be sent right now: mail is not configured.',
+    'auth.mailFailed': 'The email could not be sent. Try again in a moment.',
+    'auth.alreadyVerified': 'That email is already verified.',
+
+    'mail.verify.subject': 'Focus10: confirm your email',
+    'mail.verify.body':
+      'Hi {{name}},\n\n' +
+      'Thanks for creating a Focus10 account. Confirm your email by opening ' +
+      'this link:\n\n{{url}}\n\n' +
+      'The link is valid for 24 hours. If you did not create this account, ' +
+      'you can ignore this email.',
+    'mail.reset.subject': 'Focus10: reset your password',
+    'mail.reset.body':
+      'Hi {{name}},\n\n' +
+      'Open this link to set a new password:\n\n{{url}}\n\n' +
+      'The link is valid for 1 hour and works only once. If you did not ask ' +
+      'for it, no action is needed — your password stays as it is.',
+
+    'rateLimit.tooMany': 'Too many attempts. Try again in {{seconds}} seconds.',
 
     'project.nameLength': 'A project name must be 1–60 characters.',
     'project.notFound': 'Project not found.',
@@ -70,6 +118,11 @@ const messages = {
 
     'task.titleLength': 'A task name must be 1–200 characters.',
     'task.notFound': 'Task not found.',
+    'task.estimateRange': 'An estimate must be between {{min}} and {{max}} minutes.',
+    'task.priorityInvalid': 'That priority is not valid.',
+    'task.dueInvalid': 'That due date is not valid.',
+
+    'plan.capacityRange': 'Today’s time must be between {{min}} and {{max}} minutes.',
 
     'timer.taskDone': 'A finished task cannot start a timer.',
     'timer.notRunning': 'No timer is running.',
@@ -136,13 +189,21 @@ export function pickLang(req) {
   return langFromCookie(req) ?? langFromHeader(req) ?? DEFAULT_LANG
 }
 
-export function translate(lang, key) {
-  return messages[lang]?.[key] ?? messages[DEFAULT_LANG][key] ?? key
+/** «{{seconds}}» түріндегі орындарды vars мәндерімен алмастырады. */
+const interpolate = (text, vars) =>
+  text.replaceAll(/\{\{(\w+)\}\}/g, (match, key) =>
+    key in vars ? String(vars[key]) : match,
+  )
+
+export function translate(lang, key, vars) {
+  const text = messages[lang]?.[key] ?? messages[DEFAULT_LANG][key] ?? key
+
+  return vars === undefined ? text : interpolate(text, vars)
 }
 
 /** Барлық сұранысқа `req.lang` мен `req.t` қосады. */
 export default function i18n(req, res, next) {
   req.lang = pickLang(req)
-  req.t = (key) => translate(req.lang, key)
+  req.t = (key, vars) => translate(req.lang, key, vars)
   next()
 }

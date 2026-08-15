@@ -16,7 +16,7 @@ export default function LanguageSwitcher({ className = '' }) {
     <div
       role="group"
       aria-label={t('common.languageSwitch')}
-      className={`inline-flex rounded-full bg-slate-100 p-1 ${className}`}
+      className={`inline-flex rounded-full bg-slate-100 p-1 dark:bg-slate-800 ${className}`}
     >
       {LANGUAGES.map((code) => (
         <button
@@ -28,8 +28,8 @@ export default function LanguageSwitcher({ className = '' }) {
           lang={translate(code, 'meta.htmlLang')}
           className={`rounded-full px-3.5 py-2 text-xs font-semibold transition-colors sm:px-3 sm:py-1.5 ${
             lang === code
-              ? 'bg-white text-slate-900 shadow-sm'
-              : 'text-slate-500 hover:text-slate-900'
+              ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-950 dark:text-slate-100'
+              : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100'
           }`}
         >
           {code}

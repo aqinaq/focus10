@@ -10,12 +10,34 @@ import {
   verifyPassword,
 } from '../auth.js'
 import rateLimit from '../rateLimit.js'
+import { appUrl, mailEnabled, sendMail } from '../lib/mail.js'
+import { consumeToken, issueToken, TOKEN_KINDS } from '../lib/tokens.js'
 
 const router = Router()
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 
 const authLimit = rateLimit({ windowMs: 60_000, max: 10 })
+// Хат жіберетін маршруттар қатаңырақ: біреудің поштасын бөтен адам
+// «тазалап» тастамауы керек
+const mailLimit = rateLimit({ windowMs: 60_000, max: 4 })
+
+/**
+ * Растау/қалпына келтіру хатын жібереді. Қате шықса, оны шақырушы шешеді:
+ * тіркелу кезінде хат жетпеуі тіркелудің өзін бұзбауы керек, ал «сілтеме
+ * жібер» дегенде қолданушы шындықты білуі керек.
+ */
+async function sendLink(req, user, kind) {
+  const token = await issueToken(user.id, kind)
+  const path = kind === TOKEN_KINDS.reset ? '/reset-password' : '/verify-email'
+  const url = `${appUrl(req)}${path}?token=${token}`
+
+  await sendMail({
+    to: user.email,
+    subject: req.t(`mail.${kind}.subject`),
+    text: req.t(`mail.${kind}.body`, { name: user.name, url }),
+  })
+}
 
 router.post('/register', authLimit, async (req, res, next) => {
   try {
@@ -58,8 +80,15 @@ router.post('/register', authLimit, async (req, res, next) => {
 
     await seedWorkspace(user.id, req.lang)
 
+    // Растау хаты — тіркелудің шарты емес: пошта бапталмаса да, жетпей қалса
+    // да, аккаунт бірден жұмыс істей береді. Сондықтан қатесін тек логқа
+    // жазамыз да, жауапты күттірмейміз.
+    sendLink(req, user, TOKEN_KINDS.verify).catch((error) =>
+      console.error('Растау хаты жіберілмеді:', error),
+    )
+
     res.cookie(COOKIE_NAME, await createSession(user.id), cookieOptions)
-    res.status(201).json({ user })
+    res.status(201).json({ user: { ...user, email_verified: false } })
   } catch (error) {
     next(error)
   }
@@ -83,7 +112,12 @@ router.post('/login', authLimit, async (req, res, next) => {
 
     res.cookie(COOKIE_NAME, await createSession(row.id), cookieOptions)
     res.json({
-      user: { id: row.id, name: row.name, email: row.email },
+      user: {
+        id: row.id,
+        name: row.name,
+        email: row.email,
+        email_verified: row.email_verified_at !== null,
+      },
     })
   } catch (error) {
     next(error)
@@ -136,6 +170,121 @@ router.patch('/password', requireAuth, authLimit, async (req, res, next) => {
     // браузерге жаңа сессия береміз — ұрланған сессия жарамсыз болады.
     await pool.query('DELETE FROM sessions WHERE user_id = $1', [req.user.id])
     res.cookie(COOKIE_NAME, await createSession(req.user.id), cookieOptions)
+
+    res.status(204).end()
+  } catch (error) {
+    next(error)
+  }
+})
+
+/**
+ * «Құпиясөзді ұмыттым». Email тіркелген-тіркелмегеніне қарамастан жауап
+ * бірдей (204): әйтпесе бұл маршрут «мына адам осында тіркелген бе?» деген
+ * сұраққа жауап беретін құралға айналады.
+ *
+ * Пошта бапталмаған жағдай — қолданушыға емес, серверге қатысты, сондықтан
+ * оны жасырмаймыз: 503 қайтарамыз. Әйтпесе адам жетпейтін хатты күтіп
+ * отырар еді.
+ */
+router.post('/forgot', mailLimit, async (req, res, next) => {
+  try {
+    if (!mailEnabled() && process.env.NODE_ENV === 'production') {
+      return res.status(503).json({ error: req.t('auth.mailDisabled') })
+    }
+
+    const email = String(req.body?.email ?? '').trim()
+
+    const user = await one(
+      'SELECT id, name, email FROM users WHERE lower(email) = lower($1)',
+      [email],
+    )
+
+    if (user) {
+      try {
+        await sendLink(req, user, TOKEN_KINDS.reset)
+      } catch (error) {
+        console.error('Қалпына келтіру хаты жіберілмеді:', error)
+        return res.status(502).json({ error: req.t('auth.mailFailed') })
+      }
+    }
+
+    res.status(204).end()
+  } catch (error) {
+    next(error)
+  }
+})
+
+/**
+ * Сілтемедегі токенмен жаңа құпиясөз қою. Токен қолданылған соң жойылады.
+ * Кірген күйге бірден өткізбейміз: барлық сессияны жабамыз да, адам жаңа
+ * құпиясөзбен өзі кіреді — сол арқылы құпиясөздің шынымен есте қалғаны
+ * тексеріледі, әрі поштасына қол жеткізген біреу сессияны иемденіп кетпейді.
+ */
+router.post('/reset', authLimit, async (req, res, next) => {
+  try {
+    const password = String(req.body?.new_password ?? '')
+
+    if (password.length < 8) {
+      return res.status(400).json({
+        error: req.t('auth.checkForm'),
+        errors: { new_password: req.t('auth.passwordTooShort') },
+      })
+    }
+
+    const userId = await consumeToken(req.body?.token, TOKEN_KINDS.reset)
+
+    if (userId === null) {
+      return res.status(400).json({ error: req.t('auth.linkInvalid') })
+    }
+
+    await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [
+      await hashPassword(password),
+      userId,
+    ])
+    await pool.query('DELETE FROM sessions WHERE user_id = $1', [userId])
+
+    res.status(204).end()
+  } catch (error) {
+    next(error)
+  }
+})
+
+/** Email растау сілтемесі. Кірмеген қолданушыға да жұмыс істейді. */
+router.post('/verify', authLimit, async (req, res, next) => {
+  try {
+    const userId = await consumeToken(req.body?.token, TOKEN_KINDS.verify)
+
+    if (userId === null) {
+      return res.status(400).json({ error: req.t('auth.linkInvalid') })
+    }
+
+    await pool.query(
+      'UPDATE users SET email_verified_at = now() WHERE id = $1',
+      [userId],
+    )
+
+    res.status(204).end()
+  } catch (error) {
+    next(error)
+  }
+})
+
+/** Растау хатын қайта жіберу. */
+router.post('/verify/resend', requireAuth, mailLimit, async (req, res, next) => {
+  try {
+    if (req.user.email_verified) {
+      return res.status(409).json({ error: req.t('auth.alreadyVerified') })
+    }
+    if (!mailEnabled() && process.env.NODE_ENV === 'production') {
+      return res.status(503).json({ error: req.t('auth.mailDisabled') })
+    }
+
+    try {
+      await sendLink(req, req.user, TOKEN_KINDS.verify)
+    } catch (error) {
+      console.error('Растау хаты жіберілмеді:', error)
+      return res.status(502).json({ error: req.t('auth.mailFailed') })
+    }
 
     res.status(204).end()
   } catch (error) {

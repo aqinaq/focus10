@@ -29,7 +29,7 @@ export default function rateLimit({ windowMs = 60_000, max = 10 } = {}) {
       const seconds = Math.ceil((bucket.resetAt - now) / 1000)
       res.setHeader('Retry-After', seconds)
       return res.status(429).json({
-        error: `Тым көп әрекет. ${seconds} секундтан кейін қайталап көр.`,
+        error: req.t('rateLimit.tooMany', { seconds }),
       })
     }
 

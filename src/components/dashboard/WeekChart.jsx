@@ -17,18 +17,18 @@ export default function WeekChart({ days }) {
             className="group flex h-full flex-1 flex-col items-center justify-end gap-2"
             title={`${day.day}: ${formatDuration(day.seconds)}`}
           >
-            <span className="text-[10px] font-medium text-slate-400 opacity-0 transition-opacity group-hover:opacity-100">
+            <span className="text-[10px] font-medium text-slate-400 opacity-0 dark:text-slate-500 transition-opacity group-hover:opacity-100">
               {formatDuration(day.seconds)}
             </span>
             <div className="flex w-full flex-1 items-end">
               {day.seconds === 0 ? (
                 // Бос күн де көрінуі керек — әйтпесе диаграмма бұзылған
                 // сияқты, бірде-бір баған жоқ бос орын болып қалады
-                <div className="h-1 w-full rounded-full bg-slate-100" />
+                <div className="h-1 w-full rounded-full bg-slate-100 dark:bg-slate-800" />
               ) : (
                 <div
                   className={`w-full rounded-t-md transition-all ${
-                    isToday ? 'bg-brand-600' : 'bg-brand-100'
+                    isToday ? 'bg-brand-600' : 'bg-brand-100 dark:bg-brand-900'
                   }`}
                   style={{ height: `${height}%` }}
                 />
@@ -36,7 +36,9 @@ export default function WeekChart({ days }) {
             </div>
             <span
               className={`text-xs ${
-                isToday ? 'font-semibold text-slate-900' : 'text-slate-400'
+                isToday
+                  ? 'font-semibold text-slate-900 dark:text-slate-100'
+                  : 'text-slate-400 dark:text-slate-500'
               }`}
             >
               {weekdayLabel(day.day)}

@@ -37,6 +37,10 @@ export async function startTestServer() {
   process.env.DATABASE_URL = `postgres://postgres@127.0.0.1:${port}/postgres`
   process.env.LOG_LEVEL = 'silent'
   process.env.NODE_ENV = 'test'
+  // PGlite бір мезгілде бір байланысты ғана ұстайды. Пул одан көп ашса,
+  // қатар кеткен сұраныстар ECONNRESET алады да, қосымшаның кінәсі жоқ
+  // жерден 500 шығады. Байланысты біреу етіп, сұраныстарды кезекке қоямыз.
+  process.env.PG_POOL_MAX = '1'
   // Тесттердің бәрі бір IP-ден жүреді — лимитті көтереміз. Лимиттің өзін
   // тексеретін тест оны уақытша қайта төмендетеді.
   process.env.RATE_LIMIT_MAX = '10000'

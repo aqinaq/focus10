@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Қараңғы режимді жүйенің қалауы емес, `<html data-theme>` атрибуты
+   басқарады — сонда ғана қолданушы жүйедегіден бөлек таңдау жасай алады.
+   Атрибутты `ThemeProvider` (және index.html-дегі шағын скрипт) қояды. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 /* ── Design tokens ────────────────────────────────────────────────
    Primary: indigo-600 (brand-600). Neutrals: slate.
    Барлық компонент түсті осы палитрадан ғана алады.               */
@@ -27,10 +32,22 @@
     scroll-padding-top: 4.5rem;
     /* iOS Safari телефонды көлденең ұстағанда мәтінді өзі ұлғайтпасын */
     -webkit-text-size-adjust: 100%;
+
+    /* Браузердің өз безендіруі — скролл жолағы, енгізу өрісінің ішкі
+       батырмалары, `select` тізімі — бет тақырыбына ілессін */
+    color-scheme: light;
+    /* DemoModal-дағы «прожектор» көлеңкесі: inline style-да тұрғандықтан
+       Tailwind-тың `dark:` нұсқасы жетпейді, айнымалы арқылы береміз */
+    --scrim: oklch(0.208 0.042 265.755 / 0.45);
+  }
+
+  html[data-theme='dark'] {
+    color-scheme: dark;
+    --scrim: oklch(0.129 0.042 264.695 / 0.7);
   }
 
   body {
-    @apply bg-white text-slate-600 antialiased;
+    @apply bg-white text-slate-600 antialiased dark:bg-slate-950 dark:text-slate-400;
     /* Кездейсоқ 1-2 пиксель асып кеткен безендіру көлденең скролл
        тудырмауы үшін. `clip` — `hidden` емес: sticky тақырыпты бұзбайды. */
     overflow-x: clip;
