@@ -18,11 +18,21 @@ export const mailEnabled = () =>
  * Хаттағы сілтеме қай доменге сілтейді. `Host` тақырыбына сүйенбейміз: оны
  * сұраныспен қоса жалғандап жіберуге болады да, шынайы қолданушыға бөтен
  * доменге апаратын қалпына келтіру сілтемесі кетер еді. Сондықтан бірінші
- * кезекте айнымалыдан аламыз (Render `RENDER_EXTERNAL_URL`-ды өзі қояды),
- * ал сұраныстың өзіне тек жергілікті әзірлеуде сүйенеміз.
+ * кезекте айнымалыдан аламыз, ал сұраныстың өзіне тек жергілікті әзірлеуде
+ * сүйенеміз.
+ *
+ * `APP_URL` қойылмаса, хостингтің өзі беретін мәнге көшеміз: Render
+ * `RENDER_EXTERNAL_URL`-ды, Vercel `VERCEL_PROJECT_PRODUCTION_URL`-ды өзі
+ * қояды. Соңғысы — протоколсыз домен (`focus10.vercel.app`), әрі ол әрқашан
+ * продакшн домені: `VERCEL_URL` әр деплойдың жеке мекенжайын береді, ондай
+ * сілтеме келесі деплойдан кейін ескіріп қалар еді.
  */
 export function appUrl(req) {
-  const configured = process.env.APP_URL ?? process.env.RENDER_EXTERNAL_URL
+  const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL
+  const configured =
+    process.env.APP_URL ??
+    process.env.RENDER_EXTERNAL_URL ??
+    (vercel ? `https://${vercel}` : undefined)
 
   if (configured) return configured.replace(/\/+$/, '')
   if (process.env.NODE_ENV === 'production') return ''

@@ -13,7 +13,8 @@
     "preview": "vite preview",
     "test": "node --test \"server/test/**/*.test.js\"",
     "test:watch": "node --test --watch \"server/test/**/*.test.js\"",
-    "db:local": "node scripts/local-postgres.mjs"
+    "db:local": "node scripts/local-postgres.mjs",
+    "db:migrate": "node --env-file-if-exists=.env scripts/migrate.mjs"
   },
   "dependencies": {
     "cookie-parser": "^1.4.7",
