@@ -62,6 +62,9 @@ const messages = {
     'timer.notRunning': 'Жүріп тұрған таймер жоқ.',
 
     'app.noRoute': 'Мұндай API жоқ.',
+    'app.notConfigured':
+      'Сервер дерекқорға қосылмаған (DATABASE_URL қойылмаған). Бұл — ' +
+      'баптау қатесі: хостингтің панелінде айнымалыны қосып, деплойды қайтала.',
     'app.badJson': 'JSON форматы дұрыс емес.',
     'app.tooLarge': 'Сұраныс тым үлкен.',
     'app.serverError': 'Серверде күтпеген қате шықты.',
@@ -128,6 +131,10 @@ const messages = {
     'timer.notRunning': 'No timer is running.',
 
     'app.noRoute': 'No such API route.',
+    'app.notConfigured':
+      'The server has no database connection (DATABASE_URL is not set). ' +
+      'This is a configuration problem: add the variable in your hosting ' +
+      'dashboard and redeploy.',
     'app.badJson': 'The JSON is malformed.',
     'app.tooLarge': 'The request is too large.',
     'app.serverError': 'An unexpected server error occurred.',

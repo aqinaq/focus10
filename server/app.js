@@ -3,6 +3,7 @@ import cookieParser from 'cookie-parser'
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 
+import { CONFIG_ERROR, dbConfigured, query } from './db.js'
 import securityHeaders from './middleware/security.js'
 import requestLogger from './middleware/logger.js'
 import i18n, { pickLang, translate } from './lib/i18n.js'
@@ -29,7 +30,27 @@ export function createApp() {
   app.use(express.json({ limit: '32kb' }))
   app.use(cookieParser())
 
-  app.get('/api/health', (req, res) => res.json({ ok: true }))
+  // Диагностика: қосымша тірі ме, дерекқорға жете ме. Құпия мән қайтармайды.
+  app.get('/api/health', async (req, res) => {
+    if (!dbConfigured()) {
+      return res.json({ ok: false, db: 'not-configured', hint: CONFIG_ERROR })
+    }
+
+    try {
+      await query('SELECT 1')
+      res.json({ ok: true, db: 'up' })
+    } catch (error) {
+      res.json({ ok: false, db: 'down', hint: error.message })
+    }
+  })
+
+  // Дерекқорсыз бірде-бір маршрут жұмыс істей алмайды. «Күтпеген қате» деп
+  // 500 қайтарғанша, нақты себебін айтқан дұрыс — әйтпесе хостингті
+  // баптаудағы қате мүлде көрінбей қалады.
+  app.use('/api', (req, res, next) => {
+    if (dbConfigured()) return next()
+    res.status(503).json({ error: req.t('app.notConfigured') })
+  })
 
   app.use('/api/auth', authRoutes)
   app.use('/api/projects', projectRoutes)

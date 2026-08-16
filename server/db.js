@@ -9,14 +9,14 @@ const { Pool, types } = pg
  */
 const connectionString = process.env.DATABASE_URL
 
-if (!connectionString) {
-  throw new Error(
-    'DATABASE_URL қойылмаған. .env файлын жаса (үлгісі — .env.example) ' +
-      'немесе хостингтің панелінде айнымалыны қос.',
-  )
-}
+export const CONFIG_ERROR =
+  'DATABASE_URL қойылмаған. .env файлын жаса (үлгісі — .env.example) ' +
+  'немесе хостингтің панелінде айнымалыны қос.'
 
-const isLocal = /@(localhost|127\.0\.0\.1)/.test(connectionString)
+/** Дерекқор бапталған ба. Бапталмаса, қосымша сол туралы ашық айтады. */
+export const dbConfigured = () => Boolean(connectionString)
+
+const isLocal = /@(localhost|127\.0\.0\.1)/.test(connectionString ?? '')
 
 // «Бүгін», «осы апта» деген ұғым қай уақыт белдеуімен есептелетіні.
 // Онсыз есеп серверде UTC бойынша, ал қолданушыда жергілікті уақытпен
@@ -32,14 +32,25 @@ types.setTypeParser(types.builtins.INT8, (value) => Number(value))
 // жылжып кетуі мүмкін. Күнді қалай сақталса, солай — жол күйінде аламыз.
 types.setTypeParser(types.builtins.DATE, (value) => value)
 
-export const pool = new Pool({
-  connectionString,
-  // Supabase/Neon SSL талап етеді; жергілікті қорға ол қажет емес
-  ssl: isLocal ? false : { rejectUnauthorized: false },
-  max: Number(process.env.PG_POOL_MAX ?? 10),
-  idleTimeoutMillis: 30_000,
-  connectionTimeoutMillis: 10_000,
-})
+/**
+ * Айнымалы қойылмаса, бұрын осы модуль импорт кезінде-ақ құлайтын. Тұрақты
+ * серверде оны логтан көруге болатын, ал serverless-те бүкіл функция іске
+ * қосылмай, хостинг мазмұнсыз «FUNCTION_INVOCATION_FAILED» бетін қайтаратын:
+ * қолданушы да, әзірлеуші де себебін білмей қалатын. Сондықтан құламаймыз —
+ * қосымша көтеріледі де, себебін өзі айтады (`server/app.js`).
+ */
+const unconfigured = () => Promise.reject(new Error(CONFIG_ERROR))
+
+export const pool = connectionString
+  ? new Pool({
+      connectionString,
+      // Supabase/Neon SSL талап етеді; жергілікті қорға ол қажет емес
+      ssl: isLocal ? false : { rejectUnauthorized: false },
+      max: Number(process.env.PG_POOL_MAX ?? 10),
+      idleTimeoutMillis: 30_000,
+      connectionTimeoutMillis: 10_000,
+    })
+  : { query: unconfigured, connect: unconfigured, end: async () => {}, on: () => {} }
 
 // Байланысқа `SET TIME ZONE` жіберілмейді әрі оның қажеті жоқ: уақыт белдеуі
 // есеп сұраныстарына параметр болып беріледі. Сессия күйіне сүйенсек,

@@ -18,4 +18,25 @@
  */
 import { createApp } from '../server/app.js'
 
-export default createApp()
+/**
+ * Функция іске қосыла алмаса (импорт кезіндегі қате, жетпейтін тәуелділік),
+ * Vercel өзінің «FUNCTION_INVOCATION_FAILED» бетін қайтарады: онда JSON да,
+ * себеп те жоқ, ал фронт оны «сұраныс өтпеді» деп қана көрсете алады.
+ * Сондықтан құлауды өзіміз ұстап, себебін жауап денесіне саламыз — логқа
+ * кіре алмайтын жағдайда бұл жалғыз көрінетін жер.
+ */
+let handler
+
+try {
+  handler = createApp()
+} catch (error) {
+  console.error('Қосымша іске қосылмады:', error)
+
+  handler = (req, res) => {
+    res.statusCode = 503
+    res.setHeader('content-type', 'application/json; charset=utf-8')
+    res.end(JSON.stringify({ error: `Сервер іске қосылмады: ${error.message}` }))
+  }
+}
+
+export default handler

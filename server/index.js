@@ -1,12 +1,21 @@
 import { createApp } from './app.js'
 import {
   closePool,
+  CONFIG_ERROR,
+  dbConfigured,
   migrate,
   purgeExpiredSessions,
   purgeExpiredTokens,
 } from './db.js'
 
 const PORT = Number(process.env.PORT ?? 3080)
+
+// Тұрақты серверде қорсыз көтерілудің мағынасы жоқ: бірден түсінікті
+// хабармен тоқтаймыз (serverless-те бұдан өзгеше — қараңыз `api/index.js`)
+if (!dbConfigured()) {
+  console.error(CONFIG_ERROR)
+  process.exit(1)
+}
 
 // Схема дайын болмай тұрып сұраныс қабылдаудың мағынасы жоқ
 await migrate()
