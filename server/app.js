@@ -3,7 +3,7 @@ import cookieParser from 'cookie-parser'
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 
-import { CONFIG_ERROR, dbConfigured, query } from './db.js'
+import { CONFIG_ERROR, DB_URL_NAMES, dbConfigured, dbUrlSource, query } from './db.js'
 import securityHeaders from './middleware/security.js'
 import requestLogger from './middleware/logger.js'
 import i18n, { pickLang, translate } from './lib/i18n.js'
@@ -30,17 +30,32 @@ export function createApp() {
   app.use(express.json({ limit: '32kb' }))
   app.use(cookieParser())
 
-  // Диагностика: қосымша тірі ме, дерекқорға жете ме. Құпия мән қайтармайды.
+  // Диагностика: қосымша тірі ме, дерекқорға жете ме. Айнымалылардың тек
+  // аты мен бар-жоғы көрсетіледі — мәндері ешқашан қайтарылмайды.
   app.get('/api/health', async (req, res) => {
+    const env = {
+      source: dbUrlSource,
+      // Хостингтің панелінде айнымалы шынымен көрініп тұр ма — атын қате
+      // жазу мен «басқа ортаға қосып қою» осы жерден бірден байқалады
+      seen: DB_URL_NAMES.filter((name) => Boolean(process.env[name])),
+      dbLikeNames: Object.keys(process.env)
+        .filter((name) => /DATA|POSTGRES|SUPABASE|^PG|_DB|DB_/i.test(name))
+        .sort(),
+      mail: {
+        RESEND_API_KEY: Boolean(process.env.RESEND_API_KEY),
+        MAIL_FROM: Boolean(process.env.MAIL_FROM),
+      },
+    }
+
     if (!dbConfigured()) {
-      return res.json({ ok: false, db: 'not-configured', hint: CONFIG_ERROR })
+      return res.json({ ok: false, db: 'not-configured', hint: CONFIG_ERROR, env })
     }
 
     try {
       await query('SELECT 1')
-      res.json({ ok: true, db: 'up' })
+      res.json({ ok: true, db: 'up', env })
     } catch (error) {
-      res.json({ ok: false, db: 'down', hint: error.message })
+      res.json({ ok: false, db: 'down', hint: error.message, env })
     }
   })
 

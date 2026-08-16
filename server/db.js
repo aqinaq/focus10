@@ -6,8 +6,24 @@ const { Pool, types } = pg
 /**
  * Postgres (Supabase, Neon немесе жергілікті) — байланыс жолы DATABASE_URL
  * айнымалысынан алынады. Құпиясөз кодта да, репозиторийде де сақталмайды.
+ *
+ * Vercel-дегі Supabase/Neon интеграциясы айнымалыны өз атымен қосады
+ * (POSTGRES_URL, DATABASE_URL_UNPOOLED, …), сондықтан оларды да қабылдаймыз:
+ * әйтпесе қор қосылып тұрғанымен, қосымша оны «жоқ» деп санайды.
  */
-const connectionString = process.env.DATABASE_URL
+export const DB_URL_NAMES = [
+  'DATABASE_URL',
+  'POSTGRES_URL',
+  'POSTGRES_PRISMA_URL',
+  'POSTGRES_URL_NON_POOLING',
+  'DATABASE_URL_UNPOOLED',
+  'SUPABASE_DB_URL',
+]
+
+/** Қай айнымалыдан алынғаны — диагностика үшін керек. */
+export const dbUrlSource = DB_URL_NAMES.find((name) => Boolean(process.env[name])) ?? null
+
+const connectionString = dbUrlSource ? process.env[dbUrlSource] : undefined
 
 export const CONFIG_ERROR =
   'DATABASE_URL қойылмаған. .env файлын жаса (үлгісі — .env.example) ' +

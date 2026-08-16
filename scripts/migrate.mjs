@@ -11,20 +11,19 @@
  * трафикке шықпайды.
  */
 
-// `server/db.js` DATABASE_URL жоқ болса импорт кезінде-ақ құлайды. Preview
-// деплойға немесе бөгде ортаға айнымалы қойылмаған болуы мүмкін — ондайда
-// build-ты түсінікті емес қатемен құлатқаннан гөрі, себебін жазып шыққан
-// дұрыс. Қор жоқ болса қолданба қалай болса да іске қосылмайды.
-if (!process.env.DATABASE_URL) {
-  console.warn(
-    'DATABASE_URL қойылмаған — схема жаңартылмады. Хостингтің панелінде ' +
-      'айнымалыны қосып, деплойды қайтала (немесе жергілікті жерде ' +
-      '`npm run db:migrate` орында).',
-  )
+const { CONFIG_ERROR, closePool, dbConfigured, dbUrlSource, migrate } = await import(
+  '../server/db.js'
+)
+
+// Preview деплойға немесе бөгде ортаға айнымалы қойылмаған болуы мүмкін —
+// ондайда build-ты құлатқаннан гөрі, себебін жазып шыққан дұрыс. Қор жоқ
+// болса қолданба қалай болса да іске қосылмайды.
+if (!dbConfigured()) {
+  console.warn(`${CONFIG_ERROR} Схема жаңартылмады.`)
   process.exit(0)
 }
 
-const { migrate, closePool } = await import('../server/db.js')
+console.log(`Дерекқор: ${dbUrlSource} айнымалысынан.`)
 
 try {
   await migrate()
