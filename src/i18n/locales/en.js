@@ -195,6 +195,8 @@ export default {
     emailPlaceholder: 'you@company.com',
     password: 'Password',
     passwordPlaceholder: 'At least 8 characters',
+    showPassword: 'Show password',
+    hidePassword: 'Hide password',
     submitting: 'Checking…',
     signupSubmit: 'Sign up',
     signinSubmit: 'Sign in',

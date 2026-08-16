@@ -201,6 +201,8 @@ export default {
     emailPlaceholder: 'sen@company.com',
     password: 'Құпиясөз',
     passwordPlaceholder: 'Кемінде 8 таңба',
+    showPassword: 'Құпиясөзді көрсету',
+    hidePassword: 'Құпиясөзді жасыру',
     submitting: 'Тексерілуде…',
     signupSubmit: 'Тіркелу',
     signinSubmit: 'Кіру',

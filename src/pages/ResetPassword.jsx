@@ -6,6 +6,7 @@ import { useUI } from '../context/uiContext'
 import { useI18n } from '../i18n/i18nContext'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import ThemeSwitcher from '../components/ThemeSwitcher'
+import PasswordToggle from '../components/PasswordToggle'
 
 /**
  * Хаттағы сілтеме осында әкеледі: /reset-password?token=…
@@ -22,6 +23,7 @@ export default function ResetPassword() {
   const { t } = useI18n()
 
   const [password, setPassword] = useState('')
+  const [revealed, setRevealed] = useState(false)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
@@ -84,27 +86,34 @@ export default function ResetPassword() {
             >
               {t('settings.newPassword')}
             </label>
-            <input
-              id="new-password"
-              name="new-password"
-              type="password"
-              autoComplete="new-password"
-              enterKeyHint="go"
-              autoFocus
-              placeholder={t('auth.passwordPlaceholder')}
-              value={password}
-              onChange={(event) => {
-                setPassword(event.target.value)
-                setError('')
-              }}
-              aria-invalid={error ? 'true' : undefined}
-              aria-describedby={error ? 'new-password-error' : undefined}
-              className={`mt-2 block w-full rounded-xl border px-4 py-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 dark:text-slate-100 dark:placeholder:text-slate-500 ${
-                error
-                  ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:border-red-700 dark:focus:ring-red-900/50'
-                  : 'border-slate-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:border-slate-700 dark:focus:ring-brand-900'
-              }`}
-            />
+            <div className="relative mt-2">
+              <input
+                id="new-password"
+                name="new-password"
+                type={revealed ? 'text' : 'password'}
+                autoComplete="new-password"
+                enterKeyHint="go"
+                autoFocus
+                placeholder={t('auth.passwordPlaceholder')}
+                value={password}
+                onChange={(event) => {
+                  setPassword(event.target.value)
+                  setError('')
+                }}
+                aria-invalid={error ? 'true' : undefined}
+                aria-describedby={error ? 'new-password-error' : undefined}
+                className={`block w-full rounded-xl border py-3 pl-4 pr-12 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 dark:text-slate-100 dark:placeholder:text-slate-500 ${
+                  error
+                    ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:border-red-700 dark:focus:ring-red-900/50'
+                    : 'border-slate-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:border-slate-700 dark:focus:ring-brand-900'
+                }`}
+              />
+              <PasswordToggle
+                visible={revealed}
+                onToggle={() => setRevealed((prev) => !prev)}
+                controls="new-password"
+              />
+            </div>
             {error && (
               <p
                 id="new-password-error"

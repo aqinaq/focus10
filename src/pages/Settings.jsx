@@ -7,6 +7,7 @@ import { useUI } from '../context/uiContext'
 import { useI18n } from '../i18n/i18nContext'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import ThemeSwitcher from '../components/ThemeSwitcher'
+import PasswordToggle from '../components/PasswordToggle'
 
 const RANGES = [
   { range: 'week', key: 'settings.rangeWeek' },
@@ -253,25 +254,34 @@ function DangerZone({ notify }) {
 }
 
 function Field({ id, label, error, ...props }) {
+  const [revealed, setRevealed] = useState(false)
+
   return (
     <div>
       <label htmlFor={id} className="block text-sm font-medium text-slate-900 dark:text-slate-100">
         {label}
       </label>
-      <input
-        id={id}
-        name={id}
-        type="password"
-        autoComplete="off"
-        {...props}
-        aria-invalid={error ? 'true' : undefined}
-        aria-describedby={error ? `${id}-error` : undefined}
-        className={`mt-2 block w-full rounded-xl border px-4 py-2.5 text-sm text-slate-900 outline-none transition-colors dark:text-slate-100 ${
-          error
-            ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:border-red-700 dark:focus:ring-red-900/50'
-            : 'border-slate-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:border-slate-700 dark:focus:ring-brand-900'
-        }`}
-      />
+      <div className="relative mt-2">
+        <input
+          id={id}
+          name={id}
+          type={revealed ? 'text' : 'password'}
+          autoComplete="off"
+          {...props}
+          aria-invalid={error ? 'true' : undefined}
+          aria-describedby={error ? `${id}-error` : undefined}
+          className={`block w-full rounded-xl border py-2.5 pl-4 pr-12 text-sm text-slate-900 outline-none transition-colors dark:text-slate-100 ${
+            error
+              ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:border-red-700 dark:focus:ring-red-900/50'
+              : 'border-slate-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:border-slate-700 dark:focus:ring-brand-900'
+          }`}
+        />
+        <PasswordToggle
+          visible={revealed}
+          onToggle={() => setRevealed((prev) => !prev)}
+          controls={id}
+        />
+      </div>
       {error && (
         <p id={`${id}-error`} className="mt-2 text-sm text-red-600 dark:text-red-400">
           {error}

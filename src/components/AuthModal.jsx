@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Loader2, MailCheck, Timer } from 'lucide-react'
 import Modal from './Modal'
+import PasswordToggle from './PasswordToggle'
 import { api } from '../lib/api'
 import { useAuth } from '../context/authContext'
 import { useI18n } from '../i18n/i18nContext'
@@ -252,7 +253,10 @@ export default function AuthModal({ open, mode, onClose, onSwitchMode }) {
   )
 }
 
-function Field({ id, label, error, hint, autoFocus, ...props }) {
+function Field({ id, label, error, hint, autoFocus, type, ...props }) {
+  const [revealed, setRevealed] = useState(false)
+  const isPassword = type === 'password'
+
   return (
     <div>
       <div className="flex items-baseline justify-between gap-3">
@@ -264,19 +268,31 @@ function Field({ id, label, error, hint, autoFocus, ...props }) {
         </label>
         {hint}
       </div>
-      <input
-        id={id}
-        name={id}
-        {...props}
-        {...(autoFocus ? { 'data-autofocus': true } : {})}
-        aria-invalid={error ? 'true' : undefined}
-        aria-describedby={error ? `${id}-error` : undefined}
-        className={`mt-2 block w-full rounded-xl border px-4 py-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 dark:text-slate-100 dark:placeholder:text-slate-500 ${
-          error
-            ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:border-red-700 dark:focus:ring-red-900/50'
-            : 'border-slate-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:border-slate-700 dark:focus:ring-brand-900'
-        }`}
-      />
+      <div className="relative mt-2">
+        <input
+          id={id}
+          name={id}
+          type={isPassword && revealed ? 'text' : type}
+          {...props}
+          {...(autoFocus ? { 'data-autofocus': true } : {})}
+          aria-invalid={error ? 'true' : undefined}
+          aria-describedby={error ? `${id}-error` : undefined}
+          className={`block w-full rounded-xl border py-3 pl-4 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 dark:text-slate-100 dark:placeholder:text-slate-500 ${
+            isPassword ? 'pr-12' : 'pr-4'
+          } ${
+            error
+              ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100 dark:border-red-700 dark:focus:ring-red-900/50'
+              : 'border-slate-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:border-slate-700 dark:focus:ring-brand-900'
+          }`}
+        />
+        {isPassword && (
+          <PasswordToggle
+            visible={revealed}
+            onToggle={() => setRevealed((prev) => !prev)}
+            controls={id}
+          />
+        )}
+      </div>
       {error && (
         <p id={`${id}-error`} className="mt-2 text-sm text-red-600 dark:text-red-400">
           {error}
