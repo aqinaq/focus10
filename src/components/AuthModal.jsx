@@ -21,25 +21,41 @@ export default function AuthModal({ open, mode, onClose, onSwitchMode }) {
   const [form, setForm] = useState(emptyForm)
   const [errors, setErrors] = useState({})
   const [formError, setFormError] = useState('')
+  // Қатенің жанындағы «шығу жолы»: 'forgot' — құпиясөзді қалпына келтіру,
+  // 'signin' — бұл email тіркеліп қойған, кіру керек
+  const [errorAction, setErrorAction] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [sent, setSent] = useState(false)
+
+  const clearFeedback = () => {
+    setErrors({})
+    setFormError('')
+    setErrorAction(null)
+    setSubmitting(false)
+    setSent(false)
+  }
 
   // Модаль әр ашылғанда форманы тазартамыз
   useEffect(() => {
     if (open) {
       setForm(emptyForm)
-      setErrors({})
-      setFormError('')
-      setSubmitting(false)
-      setSent(false)
+      clearFeedback()
     }
-  }, [open, mode])
+  }, [open])
+
+  // Режим ауысқанда (кіру ↔ тіркелу ↔ ұмыттым) email қалады: адам оны
+  // жаңа ғана терген, әрі көбіне ауысудың себебі — сол email-мен басқа
+  // әрекет жасау
+  useEffect(() => {
+    if (open) clearFeedback()
+  }, [mode, open])
 
   const setField = (field) => (event) => {
     const { value } = event.target
     setForm((prev) => ({ ...prev, [field]: value }))
     setErrors((prev) => (prev[field] ? { ...prev, [field]: undefined } : prev))
     setFormError('')
+    setErrorAction(null)
   }
 
   // Серверде де дәл осындай тексеру бар — бұл жерде тек жылдам кері байланыс
@@ -90,11 +106,23 @@ export default function AuthModal({ open, mode, onClose, onSwitchMode }) {
       navigate('/app')
     } catch (error) {
       // Сервер өріс деңгейіндегі қателерді қайтарса, соларды көрсетеміз
-      if (error.fields && Object.keys(error.fields).length > 0) {
-        setErrors(error.fields)
-      } else {
-        setFormError(error.message)
-      }
+      const fields = error.fields ?? {}
+      const hasFields = Object.keys(fields).length > 0
+      if (hasFields) setErrors(fields)
+
+      // «Email не құпиясөз қате» деп қана қою жеткіліксіз: адам көбіне
+      // құпиясөзін ұмытқан, сондықтан келесі қадамды бірден ұсынамыз.
+      const action =
+        !isForgot && !isSignup && error.status === 401
+          ? 'forgot'
+          : isSignup && error.status === 409
+            ? 'signin'
+            : null
+
+      // Өріс қатесі көрсетілгенде жоғарыдағы қорап қайталанбауы керек —
+      // ұсынатын шешім болса ғана шығарамыз
+      if (!hasFields || action) setFormError(error.message)
+      setErrorAction(action)
       setSubmitting(false)
     }
   }
@@ -200,12 +228,23 @@ export default function AuthModal({ open, mode, onClose, onSwitchMode }) {
           )}
 
           {formError && (
-            <p
+            <div
               role="alert"
               className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-950/40 dark:text-red-300"
             >
-              {formError}
-            </p>
+              <p>{formError}</p>
+              {errorAction && (
+                <button
+                  type="button"
+                  onClick={() => onSwitchMode(errorAction)}
+                  className="mt-1.5 font-semibold underline underline-offset-2 transition-opacity hover:opacity-80"
+                >
+                  {errorAction === 'forgot'
+                    ? t('auth.recoverAction')
+                    : t('auth.signinAction')}
+                </button>
+              )}
+            </div>
           )}
 
           <button

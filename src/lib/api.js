@@ -9,12 +9,43 @@ import { translate } from '../i18n/messages'
  * мұндағы аударма тек жауапта мәтін мүлде болмаған жағдайға арналған.
  */
 export class ApiError extends Error {
-  constructor(message, { status, fields }) {
+  constructor(message, { status, fields, code }) {
     super(message)
     this.name = 'ApiError'
     this.status = status
     this.fields = fields ?? {}
+    // 'offline' | 'timeout' | 'network' | 'http' — қолданушыға не істеу
+    // керегін айту үшін шақырушы осыған қарайды
+    this.code = code ?? 'http'
   }
+}
+
+/**
+ * Тегін хостингте ұйықтап қалған сервер 30–60 секундқа дейін оянуы мүмкін,
+ * сондықтан күту мерзімі ұзақ. Онсыз fetch мәңгі ілініп тұрып, батырма
+ * «Тексерілуде…» күйінде қатып қалар еді.
+ */
+const TIMEOUT_MS = 45_000
+
+// AbortSignal.timeout — салыстырмалы жаңа API. Ескі браузерде күту мерзімі
+// болмай қалғаны — қатеге айналдырғаннан жақсы.
+const timeoutSignal = () =>
+  typeof AbortSignal?.timeout === 'function' ? AbortSignal.timeout(TIMEOUT_MS) : undefined
+
+const t = (key, vars) => translate(readLangCookie(), key, vars)
+
+/**
+ * Сервер жауабында мәтін болмаған жағдайға арналған хабарламалар. Мұндай
+ * жауап әдетте қосымшадан емес, хостингтен келеді (502/504 беттері), сол
+ * себепті «сұраныс сәтсіз» деудің орнына нақты не болғанын айтамыз.
+ */
+function httpMessage(status, retryAfter) {
+  if (status === 429) return t('api.tooMany', { seconds: retryAfter ?? 60 })
+  if (status === 404) return t('api.notFound')
+  if (status === 408 || status === 504) return t('api.timeout')
+  if (status === 502 || status === 503) return t('api.waking')
+  if (status >= 500) return t('api.serverError', { status })
+  return t('api.failed', { status })
 }
 
 /**
@@ -35,12 +66,28 @@ export function setUnauthorizedHandler(handler) {
 const EXPECTED_401 = new Set(['/auth/login', '/auth/me'])
 
 async function request(path, { method = 'GET', body } = {}) {
-  const response = await fetch(`/api${path}`, {
-    method,
-    credentials: 'same-origin',
-    headers: body === undefined ? undefined : { 'content-type': 'application/json' },
-    body: body === undefined ? undefined : JSON.stringify(body),
-  })
+  let response
+
+  // Желі үзілуі мен күту мерзімі — HTTP қатесі емес, бірақ қолданушы үшін
+  // дәл сондай оқиға. Екеуін де ApiError-ға айналдырамыз, әйтпесе жоғарыда
+  // «Failed to fetch» деген аударылмаған браузер мәтіні шығады.
+  try {
+    response = await fetch(`/api${path}`, {
+      method,
+      credentials: 'same-origin',
+      headers: body === undefined ? undefined : { 'content-type': 'application/json' },
+      body: body === undefined ? undefined : JSON.stringify(body),
+      signal: timeoutSignal(),
+    })
+  } catch (error) {
+    const timedOut = error.name === 'TimeoutError' || error.name === 'AbortError'
+    const offline = !timedOut && navigator.onLine === false
+
+    throw new ApiError(
+      timedOut ? t('api.timeout') : offline ? t('api.offline') : t('api.unreachable'),
+      { status: 0, code: timedOut ? 'timeout' : offline ? 'offline' : 'network' },
+    )
+  }
 
   if (response.status === 401 && !EXPECTED_401.has(path)) onUnauthorized?.()
 
@@ -49,7 +96,9 @@ async function request(path, { method = 'GET', body } = {}) {
   const data = await response.json().catch(() => ({}))
 
   if (!response.ok) {
-    throw new ApiError(data.error ?? translate(readLangCookie(), 'api.failed'), {
+    const retryAfter = Number(response.headers.get('retry-after')) || undefined
+
+    throw new ApiError(data.error ?? httpMessage(response.status, retryAfter), {
       status: response.status,
       fields: data.errors,
     })

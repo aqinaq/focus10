@@ -52,6 +52,9 @@ export function UIProvider({ children }) {
       openSignup: () =>
         user ? navigate('/app') : setAuth({ mode: 'signup' }),
       openSignin: () => (user ? navigate('/app') : setAuth({ mode: 'signin' })),
+      // Сілтеменің мерзімі өтіп кетсе, «жаңасын сұра» дегеннің орындалатын
+      // жолы осы
+      openForgot: () => setAuth({ mode: 'forgot' }),
       openDemo: () => setDemoOpen(true),
       notify,
     }),

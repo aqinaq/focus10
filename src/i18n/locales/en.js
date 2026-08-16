@@ -205,6 +205,8 @@ export default {
     switchToSignin: 'Sign in',
     switchToSignup: 'Sign up',
     forgotLink: 'Forgot it?',
+    recoverAction: 'Send me a password reset link',
+    signinAction: 'Sign in with this email instead',
     forgotTitle: 'Forgot your password?',
     forgotSubtitle: 'Enter your email and we will send you a reset link.',
     forgotSubmit: 'Send the link',
@@ -225,6 +227,7 @@ export default {
     submit: 'Save the password',
     noToken: 'The link is incomplete. Open the full link from the email.',
     done: 'Password changed. Sign in with the new one.',
+    newLink: 'Send me a new link',
   },
 
   verify: {
@@ -493,7 +496,20 @@ export default {
     ],
   },
 
+  // Shown only when the server sends no message of its own — usually a
+  // hosting-level error. Say what happened and what to do about it.
   api: {
-    failed: 'The request failed.',
+    failed: 'The request did not go through (error {{status}}). Reload the page and try again.',
+    offline: 'You appear to be offline. Check your connection and try again.',
+    unreachable:
+      'Could not reach the server. Check your connection, or try again in a minute.',
+    timeout:
+      'The server did not respond in time. On free hosting it may have gone to sleep — wait about 30 seconds and try again.',
+    waking:
+      'The server is unavailable right now (it may be restarting). Try again in half a minute.',
+    serverError:
+      'Something broke on the server (error {{status}}). This is not your fault — try again shortly.',
+    notFound: 'That address was not found. Try reloading the page.',
+    tooMany: 'Too many attempts. Try again in {{seconds}} seconds.',
   },
 }

@@ -19,12 +19,13 @@ export default function ResetPassword() {
   const [params] = useSearchParams()
   const token = params.get('token') ?? ''
   const navigate = useNavigate()
-  const { openSignin, notify } = useUI()
+  const { openSignin, openForgot, notify } = useUI()
   const { t } = useI18n()
 
   const [password, setPassword] = useState('')
   const [revealed, setRevealed] = useState(false)
   const [error, setError] = useState('')
+  const [linkDead, setLinkDead] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   const handleSubmit = async (event) => {
@@ -46,7 +47,11 @@ export default function ResetPassword() {
       notify(t('reset.done'))
       openSignin()
     } catch (failure) {
-      setError(failure.fields?.new_password ?? failure.message)
+      const fieldError = failure.fields?.new_password
+      setError(fieldError ?? failure.message)
+      // Құпиясөздің өзі дұрыс, бірақ сілтеме жарамсыз болса — жаңасын
+      // сұрайтын жол көрсетеміз, әйтпесе адам бұл бетте тұйыққа тіреледі
+      setLinkDead(!fieldError && failure.status === 400)
       setSubmitting(false)
     }
   }
@@ -66,12 +71,24 @@ export default function ResetPassword() {
           <p className="mt-3 text-sm/6 text-slate-500 dark:text-slate-400">
             {t('reset.noToken')}
           </p>
-          <Link
-            to="/"
-            className="mt-6 inline-flex items-center justify-center rounded-full bg-brand-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
-          >
-            {t('notFound.home')}
-          </Link>
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                navigate('/')
+                openForgot()
+              }}
+              className="inline-flex items-center justify-center rounded-full bg-brand-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-700"
+            >
+              {t('reset.newLink')}
+            </button>
+            <Link
+              to="/"
+              className="inline-flex items-center justify-center rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+            >
+              {t('notFound.home')}
+            </Link>
+          </div>
         </>
       ) : (
         <>
@@ -99,6 +116,7 @@ export default function ResetPassword() {
                 onChange={(event) => {
                   setPassword(event.target.value)
                   setError('')
+                  setLinkDead(false)
                 }}
                 aria-invalid={error ? 'true' : undefined}
                 aria-describedby={error ? 'new-password-error' : undefined}
@@ -115,13 +133,21 @@ export default function ResetPassword() {
               />
             </div>
             {error && (
-              <p
-                id="new-password-error"
-                role="alert"
-                className="mt-2 text-sm text-red-600 dark:text-red-400"
-              >
-                {error}
-              </p>
+              <div id="new-password-error" role="alert" className="mt-2">
+                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                {linkDead && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigate('/')
+                      openForgot()
+                    }}
+                    className="mt-1.5 text-sm font-semibold text-red-700 underline underline-offset-2 transition-opacity hover:opacity-80 dark:text-red-300"
+                  >
+                    {t('reset.newLink')}
+                  </button>
+                )}
+              </div>
             )}
 
             <button
