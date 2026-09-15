@@ -33,6 +33,10 @@ export const CONFIG_ERROR =
 export const dbConfigured = () => Boolean(connectionString)
 
 const isLocal = /@(localhost|127\.0\.0\.1)/.test(connectionString ?? '')
+const configuredPoolMax = Number(process.env.PG_POOL_MAX)
+const poolMax = Number.isInteger(configuredPoolMax) && configuredPoolMax > 0
+  ? configuredPoolMax
+  : 1
 
 // «Бүгін», «осы апта» деген ұғым қай уақыт белдеуімен есептелетіні.
 // Онсыз есеп серверде UTC бойынша, ал қолданушыда жергілікті уақытпен
@@ -62,7 +66,7 @@ export const pool = connectionString
       connectionString,
       // Supabase/Neon SSL талап етеді; жергілікті қорға ол қажет емес
       ssl: isLocal ? false : { rejectUnauthorized: false },
-      max: Number(process.env.PG_POOL_MAX ?? 10),
+      max: poolMax,
       idleTimeoutMillis: 30_000,
       connectionTimeoutMillis: 10_000,
     })
@@ -196,7 +200,20 @@ const SCHEMA = `
 
 /** Схеманы құрады. Сервер тыңдамас бұрын шақырылуы керек. */
 export async function migrate() {
-  await pool.query(SCHEMA)
+  const client = await pool.connect()
+  try {
+    await client.query('BEGIN')
+    // Vercel can start several function instances at once. A transaction lock
+    // serializes their DDL and also works with transaction-mode poolers.
+    await client.query('SELECT pg_advisory_xact_lock(42010)')
+    await client.query(SCHEMA)
+    await client.query('COMMIT')
+  } catch (error) {
+    await client.query('ROLLBACK').catch(() => {})
+    throw error
+  } finally {
+    client.release()
+  }
 }
 
 /** Мерзімі өткен сессияларды тазалау. */

@@ -44,18 +44,23 @@ export function createApp() {
       mail: {
         RESEND_API_KEY: Boolean(process.env.RESEND_API_KEY),
         MAIL_FROM: Boolean(process.env.MAIL_FROM),
+        linkOrigin: Boolean(
+          process.env.APP_URL ||
+          process.env.RENDER_EXTERNAL_URL ||
+          process.env.VERCEL_PROJECT_PRODUCTION_URL,
+        ),
       },
     }
 
     if (!dbConfigured()) {
-      return res.json({ ok: false, db: 'not-configured', hint: CONFIG_ERROR, env })
+      return res.status(503).json({ ok: false, db: 'not-configured', hint: CONFIG_ERROR, env })
     }
 
     try {
       await query('SELECT 1')
       res.json({ ok: true, db: 'up', env })
     } catch (error) {
-      res.json({ ok: false, db: 'down', hint: error.message, env })
+      res.status(503).json({ ok: false, db: 'down', code: error.code, hint: error.message, env })
     }
   })
 

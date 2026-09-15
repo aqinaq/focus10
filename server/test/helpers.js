@@ -1,4 +1,5 @@
 import { createServer } from 'node:net'
+import { createServer as createHttpServer } from 'node:http'
 import { PGlite } from '@electric-sql/pglite'
 import { PGLiteSocketServer } from '@electric-sql/pglite-socket'
 
@@ -27,7 +28,7 @@ function freePort() {
  *
  * Әр тест файлы өз данасын көтереді, сондықтан бір-бірінің дерегін көрмейді.
  */
-export async function startTestServer() {
+export async function startTestServer({ serverless = false } = {}) {
   const port = await freePort()
 
   const pglite = await PGlite.create()
@@ -49,9 +50,11 @@ export async function startTestServer() {
   const { createApp } = await import('../app.js')
   const dbModule = await import('../db.js')
 
-  await dbModule.migrate()
+  if (!serverless) await dbModule.migrate()
 
-  const server = createApp().listen(0)
+  const server = serverless
+    ? createHttpServer((await import('../../api/index.js')).default).listen(0)
+    : createApp().listen(0)
   await new Promise((resolve) => server.once('listening', resolve))
 
   const base = `http://127.0.0.1:${server.address().port}`

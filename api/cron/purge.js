@@ -10,7 +10,7 @@
  * сондықтан маршрут интернетке ашық қалмайды. `CRON_SECRET` қойылмаса,
  * үнсіз өткізіп жібергеннен гөрі ашық қате қайтарамыз.
  */
-import { purgeExpiredSessions, purgeExpiredTokens } from '../../server/db.js'
+import { migrate, purgeExpiredSessions, purgeExpiredTokens } from '../../server/db.js'
 
 export default async function handler(req, res) {
   const secret = process.env.CRON_SECRET
@@ -24,6 +24,7 @@ export default async function handler(req, res) {
   }
 
   try {
+    await migrate()
     await Promise.all([purgeExpiredSessions(), purgeExpiredTokens()])
     return res.status(200).json({ ok: true })
   } catch (error) {

@@ -30,8 +30,8 @@ export const mailEnabled = () =>
 export function appUrl(req) {
   const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL
   const configured =
-    process.env.APP_URL ??
-    process.env.RENDER_EXTERNAL_URL ??
+    process.env.APP_URL ||
+    process.env.RENDER_EXTERNAL_URL ||
     (vercel ? `https://${vercel}` : undefined)
 
   if (configured) return configured.replace(/\/+$/, '')

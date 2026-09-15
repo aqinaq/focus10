@@ -6,10 +6,10 @@
  * Express қосымшасының өзі `(req, res)` функциясы болғандықтан, оны тікелей
  * экспорттай береміз — бөлек адаптердің қажеті жоқ.
  *
- * `server/index.js`-тен айырмашылығы: мұнда `listen()` де, `migrate()` де
- * шақырылмайды. Функция сұраныстар арасында өмір сүрмейді, сондықтан
+ * `server/index.js`-тен айырмашылығы: мұнда `listen()` шақырылмайды.
+ * Функция сұраныстар арасында өмір сүрмейді, сондықтан
  * серверде «іске қосылу кезінде» істелетін жұмыс екіге бөлінді:
- *   • схеманы құру      → `scripts/migrate.mjs`, build кезінде бір рет
+ *   • схеманы құру      → бірінші API сұранысында, әр суық функция данасында
  *   • ескіні тазалау    → `api/cron/purge.js`, Vercel Cron кестесімен
  *
  * Фронт бұл функцияға мүлдем соқпайды: `dist/` Vercel-дің CDN-інен
@@ -17,6 +17,7 @@
  * ортада іске қосылмайды (`dist` функция бумасында жоқ).
  */
 import { createApp } from '../server/app.js'
+import { dbConfigured, migrate } from '../server/db.js'
 
 /**
  * Функция іске қосыла алмаса (импорт кезіндегі қате, жетпейтін тәуелділік),
@@ -26,9 +27,33 @@ import { createApp } from '../server/app.js'
  * кіре алмайтын жағдайда бұл жалғыз көрінетін жер.
  */
 let handler
+let schemaReady
 
 try {
-  handler = createApp()
+  const app = createApp()
+  handler = async (req, res) => {
+    // Keep health available when the database is down, so it can report why.
+    if (dbConfigured() && req.url?.split('?')[0] !== '/api/health') {
+      // A cold function instance initializes once. Retry on the next request
+      // if the database was temporarily unavailable.
+      schemaReady ??= migrate().catch((error) => {
+        schemaReady = undefined
+        throw error
+      })
+
+      try {
+        await schemaReady
+      } catch (error) {
+        console.error('Схеманы жаңарту сәтсіз:', error)
+        res.statusCode = 503
+        res.setHeader('content-type', 'application/json; charset=utf-8')
+        res.end(JSON.stringify({ error: 'Дерекқор схемасы дайын емес', code: error.code }))
+        return
+      }
+    }
+
+    return app(req, res)
+  }
 } catch (error) {
   console.error('Қосымша іске қосылмады:', error)
 
