@@ -5,13 +5,14 @@ import {
   Sparkles,
   KeyRound,
   ShieldCheck,
+  Download,
 } from 'lucide-react'
 import { useI18n } from '../i18n/i18nContext'
 
 // Тек шынымен жұмыс істеп тұрған мүмкіндіктер. Жоспардағылар — футердегі
 // «Жоспарда» бағанында бөлек көрсетілген.
 // Мәтіні аудармада, мұнда тек реті мен таңбашасы.
-const icons = [Timer, ListChecks, BarChart3, Sparkles, KeyRound, ShieldCheck]
+const icons = [Timer, ListChecks, BarChart3, Sparkles, KeyRound, ShieldCheck, Download]
 
 export default function Features() {
   const { t } = useI18n()

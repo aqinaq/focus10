@@ -11,7 +11,7 @@
     "start": "NODE_ENV=production node --env-file-if-exists=.env server/index.js",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test": "node --test \"server/test/**/*.test.js\"",
+    "test": "node --test \"server/test/**/*.test.js\" \"src/test/**/*.test.js\"",
     "test:watch": "node --test --watch \"server/test/**/*.test.js\"",
     "db:local": "node scripts/local-postgres.mjs",
     "db:migrate": "node --env-file-if-exists=.env scripts/migrate.mjs"
