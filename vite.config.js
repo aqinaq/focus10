@@ -9,6 +9,10 @@ export default defineConfig({
   // басқа портқа көшіп, 5173-те мүлдем бөгде сайт ашылып тұрады. Сондықтан
   // Focus10-ға өз портын бекітеміз.
   server: {
+    // Playwright and the API proxy use IPv4 explicitly. Binding only to
+    // macOS' IPv6 localhost (::1) makes the site look ready in Vite while
+    // browser tests (and some local clients) cannot reach it.
+    host: '127.0.0.1',
     port: 5180,
     strictPort: true,
     // /api сұраныстарын Express серверіне жібереміз — сол арқылы браузер

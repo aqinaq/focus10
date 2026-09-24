@@ -6,6 +6,47 @@ import { toId } from '../lib/ids.js'
 const router = Router()
 router.use(requireAuth)
 
+const MIN_ENTRY_MINUTES = 1
+const MAX_ENTRY_MINUTES = 24 * 60
+
+const completedEntries = (userId) =>
+  pool.query(
+    `SELECT e.id, e.task_id, t.title AS task_title, p.name AS project_name,
+            e.started_at, e.ended_at, e.seconds
+       FROM time_entries e
+       JOIN tasks t ON t.id = e.task_id
+       LEFT JOIN projects p ON p.id = t.project_id
+      WHERE e.user_id = $1 AND e.ended_at IS NOT NULL
+      ORDER BY e.started_at DESC
+      LIMIT 30`,
+    [userId],
+  )
+
+function entryFields(req) {
+  const taskId = toId(req.body?.task_id)
+  const minutes = Number(req.body?.duration_minutes)
+  const startedAt = new Date(req.body?.started_at)
+
+  if (taskId === null) return { error: req.t('task.notFound') }
+  if (!Number.isInteger(minutes) || minutes < MIN_ENTRY_MINUTES || minutes > MAX_ENTRY_MINUTES) {
+    return {
+      error: req.t('timer.durationRange', {
+        min: MIN_ENTRY_MINUTES,
+        max: MAX_ENTRY_MINUTES,
+      }),
+    }
+  }
+  if (Number.isNaN(startedAt.getTime()) || startedAt.getTime() > Date.now() + 300_000) {
+    return { error: req.t('timer.startInvalid') }
+  }
+
+  return { taskId, minutes, startedAt: startedAt.toISOString() }
+}
+
+async function ownedTask(userId, taskId) {
+  return one('SELECT id FROM tasks WHERE id = $1 AND user_id = $2', [taskId, userId])
+}
+
 const activeEntry = (userId) =>
   one(
     `SELECT e.id, e.task_id, e.started_at, t.title AS task_title,
@@ -69,6 +110,94 @@ async function startEntry(userId, taskId) {
 router.get('/', async (req, res, next) => {
   try {
     res.json({ active: await activeEntry(req.user.id) })
+  } catch (error) {
+    next(error)
+  }
+})
+
+router.get('/entries', async (req, res, next) => {
+  try {
+    const { rows } = await completedEntries(req.user.id)
+    res.json({ entries: rows })
+  } catch (error) {
+    next(error)
+  }
+})
+
+router.post('/entries', async (req, res, next) => {
+  try {
+    const fields = entryFields(req)
+    if (fields.error) return res.status(400).json({ error: fields.error })
+    if (!(await ownedTask(req.user.id, fields.taskId))) {
+      return res.status(404).json({ error: req.t('task.notFound') })
+    }
+
+    const seconds = fields.minutes * 60
+    const entry = await one(
+      `INSERT INTO time_entries (user_id, task_id, started_at, ended_at, seconds)
+       VALUES ($1, $2, $3::timestamptz,
+               $3::timestamptz + make_interval(secs => $4), $4)
+       RETURNING id`,
+      [req.user.id, fields.taskId, fields.startedAt, seconds],
+    )
+    const { rows } = await completedEntries(req.user.id)
+    res.status(201).json({ entry: rows.find((row) => row.id === entry.id) })
+  } catch (error) {
+    next(error)
+  }
+})
+
+router.patch('/entries/:id', async (req, res, next) => {
+  try {
+    const entryId = toId(req.params.id)
+    if (entryId === null) {
+      return res.status(404).json({ error: req.t('timer.entryNotFound') })
+    }
+
+    const fields = entryFields(req)
+    if (fields.error) return res.status(400).json({ error: fields.error })
+    if (!(await ownedTask(req.user.id, fields.taskId))) {
+      return res.status(404).json({ error: req.t('task.notFound') })
+    }
+
+    const seconds = fields.minutes * 60
+    const updated = await one(
+      `UPDATE time_entries
+          SET task_id = $1,
+              started_at = $2::timestamptz,
+              ended_at = $2::timestamptz + make_interval(secs => $3),
+              seconds = $3
+        WHERE id = $4 AND user_id = $5 AND ended_at IS NOT NULL
+        RETURNING id`,
+      [fields.taskId, fields.startedAt, seconds, entryId, req.user.id],
+    )
+    if (!updated) {
+      return res.status(404).json({ error: req.t('timer.entryNotFound') })
+    }
+
+    const { rows } = await completedEntries(req.user.id)
+    res.json({ entry: rows.find((row) => row.id === entryId) })
+  } catch (error) {
+    next(error)
+  }
+})
+
+router.delete('/entries/:id', async (req, res, next) => {
+  try {
+    const entryId = toId(req.params.id)
+    if (entryId === null) {
+      return res.status(404).json({ error: req.t('timer.entryNotFound') })
+    }
+
+    const { rowCount } = await pool.query(
+      `DELETE FROM time_entries
+        WHERE id = $1 AND user_id = $2 AND ended_at IS NOT NULL`,
+      [entryId, req.user.id],
+    )
+    if (rowCount === 0) {
+      return res.status(404).json({ error: req.t('timer.entryNotFound') })
+    }
+    res.status(204).end()
   } catch (error) {
     next(error)
   }

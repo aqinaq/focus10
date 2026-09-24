@@ -14,6 +14,7 @@ export default {
     loading: 'Loading…',
     skipToContent: 'Skip to main content',
     dismissToast: 'Dismiss notification',
+    save: 'Save',
     language: 'Language',
     languageSwitch: 'Change language',
     theme: 'Theme',
@@ -31,10 +32,17 @@ export default {
     who: 'Who it is for',
     about: 'About us',
     signIn: 'Sign in',
-    getStarted: 'Get Started',
+    getStarted: 'Start without an account',
     dashboard: 'Dashboard',
     openMenu: 'Open menu',
     closeMenu: 'Close menu',
+  },
+
+  guest: {
+    name: 'Guest',
+    createAccount: 'Create an account',
+    saveWork: 'Save my work',
+    sessionNote: 'Guest data stays available in this browser for up to 30 days. Create an account to access it from another device.',
   },
 
   hero: {
@@ -43,10 +51,10 @@ export default {
     titleAccent: 'matters',
     subtitle:
       'Focus10 is a task and timer tool for freelancers who track their own hours. Attach a task to a project, start the timer with one click, and export the week as CSV.',
-    getStarted: 'Get Started',
+    getStarted: 'Start without an account',
     watchDemo: 'Watch Demo',
     watchDemoAria: 'Watch the demo',
-    trust: ['Free to sign up', 'No card required', 'Export your data anytime'],
+    trust: ['No sign-up required', 'No card required', 'Export your data anytime'],
     screenshotAlt:
       'The Focus10 dashboard: a running timer, daily and weekly totals, the task list and the weekly chart',
     screenshotCta: 'See how it works',
@@ -56,7 +64,7 @@ export default {
       { value: '$0', label: 'Every feature is free — there is no billing yet' },
       { value: 'CSV', label: 'Download your data whenever you want' },
       { value: 'Postgres', label: 'Your data in a real database, exportable at any time' },
-      { value: '118 tests', label: 'Every API route is covered by an automated test' },
+      { value: '124 tests', label: 'The API and landing page are covered by automated tests' },
     ],
   },
 
@@ -163,7 +171,7 @@ export default {
     title: 'Get your focus back, starting today',
     subtitle:
       'Free to sign up, no card required. Create an account in two minutes and start your first timer.',
-    button: 'Get Started',
+    button: 'Start without an account',
   },
 
   footer: {
@@ -176,12 +184,84 @@ export default {
     stack: [
       'React 19 + Vite + Tailwind CSS',
       'Express 5 + Postgres (node-postgres)',
-      '118 automated tests cover the API',
+      '124 automated tests cover the product',
     ],
     plannedNote: 'Not built yet — nothing here is clickable.',
     planned: ['PDF reports', 'Invoicing', 'Team mode', 'Calendar sync'],
-    disclaimer:
-      'The product is still early: legal documents (Privacy, Terms) are not ready yet.',
+    disclaimer: 'A small, independently built product with transparent data controls.',
+  },
+
+  legal: {
+    eyebrow: 'Legal',
+    effective: 'Effective September 16, 2026',
+    privacy: {
+      title: 'Privacy Policy',
+      intro: 'Focus10 collects only the information needed to run the task and time-tracking service. This policy explains what is stored and what choices you have.',
+      sections: [
+        {
+          title: 'Information we store',
+          items: [
+            'Account information: your name, email address, password hash, verification status, and session records.',
+            'Workspace information: projects, tasks, plans, time entries, and the settings you choose.',
+            'Basic operational logs used to diagnose errors, secure the service, and prevent abuse.',
+          ],
+        },
+        {
+          title: 'How we use it',
+          body: 'We use this information to provide the service, calculate reports and insights, secure accounts, send verification or recovery messages, and troubleshoot reliability problems. Focus10 does not sell personal data or use it for targeted advertising.',
+        },
+        {
+          title: 'Cookies and local storage',
+          body: 'A secure httpOnly cookie keeps you signed in. Language and theme choices are stored in your browser. These are functional controls, not advertising trackers.',
+        },
+        {
+          title: 'Service providers',
+          body: 'Hosting, database, and transactional-email providers may process data only as needed to operate Focus10. Their own terms and privacy obligations also apply.',
+        },
+        {
+          title: 'Retention and your choices',
+          body: 'You can export tracked time as CSV and delete your account from Settings. Account deletion removes the account and its projects, tasks, plans, sessions, and time entries. Short-lived security logs and backups may remain temporarily where technically necessary.',
+        },
+        {
+          title: 'Questions and changes',
+          body: 'For privacy questions, use the public project repository linked from the home page. Material policy changes will be reflected here with a new effective date.',
+        },
+      ],
+    },
+    terms: {
+      title: 'Terms of Service',
+      intro: 'These terms govern your use of Focus10. By creating an account or using the service, you agree to them.',
+      sections: [
+        {
+          title: 'The service',
+          body: 'Focus10 provides task management, time tracking, planning, reports, and data export. The service is currently offered without a paid subscription and may change as the product develops.',
+        },
+        {
+          title: 'Your account',
+          items: [
+            'Provide accurate account information and keep your password secure.',
+            'You are responsible for activity performed through your account.',
+            'Do not use the service to break the law, harm others, probe security, or disrupt availability.',
+          ],
+        },
+        {
+          title: 'Your data',
+          body: 'You retain ownership of the information you enter. You give Focus10 permission to store and process it only as necessary to operate and improve the service. You can export time records or delete the account from Settings.',
+        },
+        {
+          title: 'Availability and warranties',
+          body: 'Focus10 is an early product provided on an “as is” and “as available” basis. We work to keep it reliable but cannot promise uninterrupted operation or that every result will fit every business, tax, payroll, or legal purpose.',
+        },
+        {
+          title: 'Liability',
+          body: 'To the extent permitted by law, Focus10 is not liable for indirect losses, lost profits, or lost data arising from use of the service. Keep exports or other backups when records are business-critical.',
+        },
+        {
+          title: 'Termination and changes',
+          body: 'You may stop using Focus10 and delete your account at any time. Access may be restricted for abuse or security risks. Material term changes will be published here with an updated effective date.',
+        },
+      ],
+    },
   },
 
   auth: {
@@ -321,6 +401,20 @@ export default {
       done: 'Done',
       all: 'All',
     },
+  },
+
+  timeEntries: {
+    title: 'Time entries',
+    body: 'Forgot the timer? Add the time manually, or correct a recent entry.',
+    task: 'Task for the time entry',
+    startedAt: 'Start date and time',
+    minutes: 'Minutes',
+    add: 'Add time',
+    empty: 'No completed time entries yet.',
+    edit: 'Edit time entry',
+    delete: 'Delete time entry',
+    confirmDelete: 'Confirm deleting time entry',
+    confirm: 'Delete',
   },
 
   insights: {

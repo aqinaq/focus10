@@ -50,8 +50,8 @@ export function UIProvider({ children }) {
       // Кірген қолданушыға тіркелу формасын қайта көрсетудің мағынасы жоқ —
       // оны бірден қолданбаға жібереміз.
       openSignup: () =>
-        user ? navigate('/app') : setAuth({ mode: 'signup' }),
-      openSignin: () => (user ? navigate('/app') : setAuth({ mode: 'signin' })),
+        user && !user.is_guest ? navigate('/app') : setAuth({ mode: 'signup' }),
+      openSignin: () => (user && !user.is_guest ? navigate('/app') : setAuth({ mode: 'signin' })),
       // Сілтеменің мерзімі өтіп кетсе, «жаңасын сұра» дегеннің орындалатын
       // жолы осы
       openForgot: () => setAuth({ mode: 'forgot' }),

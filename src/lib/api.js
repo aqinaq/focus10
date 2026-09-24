@@ -109,6 +109,7 @@ async function request(path, { method = 'GET', body } = {}) {
 
 export const api = {
   register: (payload) => request('/auth/register', { method: 'POST', body: payload }),
+  guest: () => request('/auth/guest', { method: 'POST' }),
   login: (payload) => request('/auth/login', { method: 'POST', body: payload }),
   logout: () => request('/auth/logout', { method: 'POST' }),
   me: () => request('/auth/me'),
@@ -134,6 +135,12 @@ export const api = {
   timer: () => request('/timer'),
   startTimer: (taskId) => request('/timer/start', { method: 'POST', body: { task_id: taskId } }),
   stopTimer: () => request('/timer/stop', { method: 'POST' }),
+  timeEntries: () => request('/timer/entries'),
+  createTimeEntry: (payload) =>
+    request('/timer/entries', { method: 'POST', body: payload }),
+  updateTimeEntry: (id, payload) =>
+    request(`/timer/entries/${id}`, { method: 'PATCH', body: payload }),
+  deleteTimeEntry: (id) => request(`/timer/entries/${id}`, { method: 'DELETE' }),
 
   week: () => request('/reports/week'),
   insights: () => request('/reports/insights'),

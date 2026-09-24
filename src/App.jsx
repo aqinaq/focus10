@@ -12,6 +12,7 @@ import SettingsPage from './pages/Settings'
 import ResetPassword from './pages/ResetPassword'
 import VerifyEmail from './pages/VerifyEmail'
 import NotFound from './pages/NotFound'
+import LegalPage from './pages/Legal'
 
 export default function App() {
   return (
@@ -49,6 +50,8 @@ export default function App() {
                       құпиясөзді ұмытқан адам дәл сол күйде келеді. */}
                   <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/verify-email" element={<VerifyEmail />} />
+                  <Route path="/privacy" element={<LegalPage kind="privacy" />} />
+                  <Route path="/terms" element={<LegalPage kind="terms" />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </UIProvider>

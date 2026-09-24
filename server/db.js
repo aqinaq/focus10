@@ -95,12 +95,14 @@ const SCHEMA = `
     name              TEXT        NOT NULL,
     email             TEXT        NOT NULL,
     password_hash     TEXT        NOT NULL,
+    is_guest          BOOLEAN     NOT NULL DEFAULT false,
     email_verified_at TIMESTAMPTZ,
     created_at        TIMESTAMPTZ NOT NULL DEFAULT now()
   );
 
   -- Бұрын құрылған қорларда бағана болмауы мүмкін
   ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified_at TIMESTAMPTZ;
+  ALTER TABLE users ADD COLUMN IF NOT EXISTS is_guest BOOLEAN NOT NULL DEFAULT false;
 
   -- citext кез келген жерде қолжетімді емес, сондықтан регистрге тәуелсіз
   -- бірегейлікті индекспен қамтамасыз етеміз

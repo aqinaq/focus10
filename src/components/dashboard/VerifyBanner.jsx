@@ -16,7 +16,7 @@ export default function VerifyBanner() {
   const { t } = useI18n()
   const [sending, setSending] = useState(false)
 
-  if (!user || user.email_verified !== false) return null
+  if (!user || user.is_guest || user.email_verified !== false) return null
 
   const resend = async () => {
     setSending(true)

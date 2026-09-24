@@ -60,6 +60,9 @@ const messages = {
 
     'timer.taskDone': 'Аяқталған тапсырмаға таймер қосылмайды.',
     'timer.notRunning': 'Жүріп тұрған таймер жоқ.',
+    'timer.durationRange': 'Уақыт {{min}}–{{max}} минут аралығында болуы керек.',
+    'timer.startInvalid': 'Басталу уақыты дұрыс емес немесе болашақта тұр.',
+    'timer.entryNotFound': 'Уақыт жазбасы табылмады.',
 
     'app.noRoute': 'Мұндай API жоқ.',
     'app.notConfigured':
@@ -129,6 +132,9 @@ const messages = {
 
     'timer.taskDone': 'A finished task cannot start a timer.',
     'timer.notRunning': 'No timer is running.',
+    'timer.durationRange': 'Duration must be between {{min}} and {{max}} minutes.',
+    'timer.startInvalid': 'The start time is invalid or is in the future.',
+    'timer.entryNotFound': 'Time entry not found.',
 
     'app.noRoute': 'No such API route.',
     'app.notConfigured':

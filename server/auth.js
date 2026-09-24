@@ -55,7 +55,8 @@ export async function userForToken(token) {
   await purgeExpiredSessions()
 
   return one(
-    `SELECT u.id, u.name, u.email, u.created_at,
+    `SELECT u.id, u.name, CASE WHEN u.is_guest THEN NULL ELSE u.email END AS email,
+            u.created_at, u.is_guest,
             (u.email_verified_at IS NOT NULL) AS email_verified
        FROM sessions s
        JOIN users u ON u.id = s.user_id

@@ -1,9 +1,9 @@
 import { ArrowRight } from 'lucide-react'
-import { useUI } from '../context/uiContext'
 import { useI18n } from '../i18n/i18nContext'
+import { useNavigate } from 'react-router-dom'
 
 export default function CTA() {
-  const { openSignup } = useUI()
+  const navigate = useNavigate()
   const { t } = useI18n()
 
   return (
@@ -29,7 +29,7 @@ export default function CTA() {
         <div className="mt-8 flex justify-center sm:mt-10">
           <button
             type="button"
-            onClick={() => openSignup()}
+            onClick={() => navigate('/app')}
             className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-white px-8 py-4 text-base font-semibold text-brand-700 shadow-lg transition-transform hover:scale-[1.02] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:w-auto"
           >
             {t('cta.button')}

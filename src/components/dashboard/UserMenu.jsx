@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { ChevronDown, LogOut, Settings } from 'lucide-react'
 import { useAuth } from '../../context/authContext'
 import { useUI } from '../../context/uiContext'
@@ -9,8 +9,9 @@ import ThemeSwitcher from '../ThemeSwitcher'
 
 export default function UserMenu({ user }) {
   const { logout } = useAuth()
-  const { notify } = useUI()
+  const { notify, openSignup } = useUI()
   const { t } = useI18n()
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const containerRef = useRef(null)
 
@@ -34,7 +35,7 @@ export default function UserMenu({ user }) {
     }
   }, [open])
 
-  const initials = user.name
+  const initials = (user.is_guest ? t('guest.name') : user.name)
     .split(/\s+/)
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase() ?? '')
@@ -54,7 +55,7 @@ export default function UserMenu({ user }) {
         </span>
         <span className="hidden text-left sm:block">
           <span className="block text-sm font-medium text-slate-900 dark:text-slate-100">
-            {user.name}
+            {user.is_guest ? t('guest.name') : user.name}
           </span>
         </span>
         <ChevronDown className="size-4 text-slate-400 dark:text-slate-500" />
@@ -67,9 +68,10 @@ export default function UserMenu({ user }) {
         >
           <div className="border-b border-slate-100 px-4 py-3 dark:border-slate-800">
             <p className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">
-              {user.name}
+              {user.is_guest ? t('guest.name') : user.name}
             </p>
-            <p className="truncate text-xs text-slate-500 dark:text-slate-400">{user.email}</p>
+            {user.is_guest && <p className="text-xs text-slate-500 dark:text-slate-400">{t('guest.sessionNote')}</p>}
+            {!user.is_guest && <p className="truncate text-xs text-slate-500 dark:text-slate-400">{user.email}</p>}
           </div>
 
           {/* Тақырыптағы тіл мен түс ауыстырғыш мобильде орын үнемдеу үшін
@@ -99,10 +101,19 @@ export default function UserMenu({ user }) {
             {t('userMenu.settings')}
           </Link>
 
+          {user.is_guest && <button
+            type="button"
+            role="menuitem"
+            onClick={() => { setOpen(false); openSignup() }}
+            className="flex w-full items-center gap-2.5 px-4 py-3 text-sm text-brand-700 hover:bg-slate-50 dark:text-brand-300 dark:hover:bg-slate-800"
+          >
+            {t('guest.saveWork')}
+          </button>}
+
           <button
             type="button"
             role="menuitem"
-            onClick={() => logout().catch((error) => notify(error.message))}
+            onClick={() => logout().then(() => navigate('/')).catch((error) => notify(error.message))}
             className="flex w-full items-center gap-2.5 px-4 py-3 text-sm text-slate-700 transition-colors hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800 sm:py-2.5"
           >
             <LogOut className="size-4 text-slate-400 dark:text-slate-500" />

@@ -1,4 +1,5 @@
 import { Timer } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { useUI } from '../context/uiContext'
 import { useAuth } from '../context/authContext'
 import { useI18n } from '../i18n/i18nContext'
@@ -118,6 +119,10 @@ export default function Footer() {
           <p className="max-w-xl text-sm text-pretty text-slate-400 dark:text-slate-500">
             {t('footer.disclaimer')}
           </p>
+          <div className="flex gap-4 text-sm">
+            <Link to="/privacy" className="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">{t('legal.privacy.title')}</Link>
+            <Link to="/terms" className="text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">{t('legal.terms.title')}</Link>
+          </div>
         </div>
       </div>
     </footer>

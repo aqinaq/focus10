@@ -234,6 +234,79 @@ describe('Таймер', () => {
 
     assert.ok(task.tracked_seconds >= 89 && task.tracked_seconds <= 92)
   })
+
+  test('уақыт жазбасын қолмен қосуға, өңдеуге және жоюға болады', async () => {
+    const { client } = await freshUser()
+    const { data } = await client.request('/api/tasks')
+    const taskId = data.tasks[0].id
+
+    const created = await client.request('/api/timer/entries', {
+      method: 'POST',
+      body: {
+        task_id: taskId,
+        started_at: '2026-09-10T09:00:00.000Z',
+        duration_minutes: 45,
+      },
+    })
+    assert.equal(created.status, 201)
+    assert.equal(created.data.entry.seconds, 2700)
+    const id = created.data.entry.id
+
+    const updated = await client.request(`/api/timer/entries/${id}`, {
+      method: 'PATCH',
+      body: {
+        task_id: taskId,
+        started_at: '2026-09-11T10:30:00.000Z',
+        duration_minutes: 30,
+      },
+    })
+    assert.equal(updated.status, 200)
+    assert.equal(updated.data.entry.seconds, 1800)
+    assert.match(updated.data.entry.started_at, /^2026-09-11T10:30:00/)
+
+    const list = await client.request('/api/timer/entries')
+    assert.ok(list.data.entries.some((entry) => entry.id === id))
+
+    assert.equal(
+      (await client.request(`/api/timer/entries/${id}`, { method: 'DELETE' })).status,
+      204,
+    )
+    assert.ok(!(await client.request('/api/timer/entries')).data.entries.some((entry) => entry.id === id))
+  })
+
+  test('қолмен жазылған уақыт бөтен тапсырмаға қосылмайды', async () => {
+    const { client: owner } = await freshUser()
+    const { client: stranger } = await freshUser()
+    const { data } = await owner.request('/api/tasks')
+
+    const result = await stranger.request('/api/timer/entries', {
+      method: 'POST',
+      body: {
+        task_id: data.tasks[0].id,
+        started_at: '2026-09-10T09:00:00.000Z',
+        duration_minutes: 15,
+      },
+    })
+    assert.equal(result.status, 404)
+  })
+
+  test('қолмен жазылған уақыттың күні мен ұзақтығы тексеріледі', async () => {
+    const { client } = await freshUser()
+    const { data } = await client.request('/api/tasks')
+    const taskId = data.tasks[0].id
+
+    const badDuration = await client.request('/api/timer/entries', {
+      method: 'POST',
+      body: { task_id: taskId, started_at: '2026-09-10T09:00:00.000Z', duration_minutes: 0 },
+    })
+    assert.equal(badDuration.status, 400)
+
+    const future = await client.request('/api/timer/entries', {
+      method: 'POST',
+      body: { task_id: taskId, started_at: '2999-01-01T00:00:00.000Z', duration_minutes: 15 },
+    })
+    assert.equal(future.status, 400)
+  })
 })
 
 describe('Есептер', () => {

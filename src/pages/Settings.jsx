@@ -17,7 +17,7 @@ const RANGES = [
 
 export default function Settings() {
   const { user } = useAuth()
-  const { notify } = useUI()
+  const { notify, openSignup } = useUI()
   const { t } = useI18n()
 
   return (
@@ -50,15 +50,31 @@ export default function Settings() {
           {t('settings.title')}
         </h1>
 
-        <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 sm:mt-8 sm:p-6">
-          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-            {t('settings.account')}
-          </h2>
-          <dl className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <Row label={t('settings.name')} value={user.name} />
-            <Row label={t('settings.email')} value={user.email} />
-          </dl>
-        </section>
+        {user.is_guest ? (
+          <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 sm:mt-8 sm:p-6">
+            <h2 className="text-lg font-semibold dark:text-slate-100">{t('guest.name')}</h2>
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+              {t('guest.sessionNote')}
+            </p>
+            <button
+              type="button"
+              onClick={openSignup}
+              className="mt-4 rounded-full bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white"
+            >
+              {t('guest.saveWork')}
+            </button>
+          </section>
+        ) : (
+          <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 sm:mt-8 sm:p-6">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+              {t('settings.account')}
+            </h2>
+            <dl className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <Row label={t('settings.name')} value={user.name} />
+              <Row label={t('settings.email')} value={user.email} />
+            </dl>
+          </section>
+        )}
 
         <section className="mt-4 rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 sm:mt-6 sm:p-6">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
@@ -98,8 +114,8 @@ export default function Settings() {
           </div>
         </section>
 
-        <PasswordForm notify={notify} />
-        <DangerZone notify={notify} />
+        {!user.is_guest && <PasswordForm notify={notify} />}
+        {!user.is_guest && <DangerZone notify={notify} />}
       </main>
     </div>
   )

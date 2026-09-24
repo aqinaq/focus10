@@ -1,10 +1,12 @@
 import { ArrowRight, Play, Sparkles, Check } from 'lucide-react'
 import { useUI } from '../context/uiContext'
 import { useI18n } from '../i18n/i18nContext'
+import { useNavigate } from 'react-router-dom'
 
 export default function Hero() {
   const { openSignup, openDemo } = useUI()
   const { t } = useI18n()
+  const navigate = useNavigate()
 
   // Ойдан шығарылған клиент логотиптері мен «12 000+ қолданушы» деген сан
   // орнына — бәрі де тексеруге болатын нақты фактілер.
@@ -54,11 +56,18 @@ export default function Hero() {
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:mt-10 sm:flex-row sm:gap-4">
             <button
               type="button"
-              onClick={() => openSignup()}
+              onClick={() => navigate('/app')}
               className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-brand-600 px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-brand-600/20 transition-colors hover:bg-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 sm:w-auto"
             >
               {t('hero.getStarted')}
               <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+            </button>
+            <button
+              type="button"
+              onClick={openSignup}
+              className="text-sm font-medium text-brand-700 underline dark:text-brand-300"
+            >
+              {t('guest.createAccount')}
             </button>
             <button
               type="button"

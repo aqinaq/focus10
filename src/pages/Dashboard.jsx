@@ -21,6 +21,7 @@ import UserMenu from '../components/dashboard/UserMenu'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import ThemeSwitcher from '../components/ThemeSwitcher'
 import WakingLoader from '../components/WakingLoader'
+import TimeEntriesPanel from '../components/dashboard/TimeEntriesPanel'
 
 const FILTERS = ['open', 'done', 'all']
 
@@ -290,6 +291,12 @@ export default function Dashboard() {
         />
 
         <InsightsPanel data={insights} />
+
+        <TimeEntriesPanel
+          tasks={tasks}
+          busy={busy}
+          onChange={(action) => mutate(action, { reloadTiming: true })}
+        />
 
         {/* items-start — әйтпесе қысқа карта көрші бағанның биіктігіне
             созылып, астында бос орын қалады */}

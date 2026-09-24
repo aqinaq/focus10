@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Menu, X, Timer } from 'lucide-react'
 import { useUI } from '../context/uiContext'
 import { useAuth } from '../context/authContext'
@@ -14,9 +15,10 @@ const links = [
 ]
 
 export default function Navbar() {
-  const { openSignup, openSignin } = useUI()
+  const { openSignin } = useUI()
   const { user } = useAuth()
   const { t } = useI18n()
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
 
@@ -70,7 +72,7 @@ export default function Navbar() {
         <div className="hidden items-center gap-3 md:flex lg:gap-5">
           <ThemeSwitcher />
           <LanguageSwitcher />
-          {!user && (
+          {(!user || user.is_guest) && (
             <button
               type="button"
               onClick={openSignin}
@@ -81,7 +83,7 @@ export default function Navbar() {
           )}
           <button
             type="button"
-            onClick={() => openSignup()}
+            onClick={() => navigate('/app')}
             className="rounded-full bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
           >
             {user ? t('nav.dashboard') : t('nav.getStarted')}
@@ -152,7 +154,7 @@ export default function Navbar() {
                 <ThemeSwitcher />
                 <LanguageSwitcher />
               </div>
-              {!user && (
+              {(!user || user.is_guest) && (
                 <button
                   type="button"
                   onClick={runAndClose(openSignin)}
@@ -163,7 +165,7 @@ export default function Navbar() {
               )}
               <button
                 type="button"
-                onClick={runAndClose(() => openSignup())}
+                onClick={runAndClose(() => navigate('/app'))}
                 className="rounded-full bg-brand-600 px-5 py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-brand-700"
               >
                 {user ? t('nav.dashboard') : t('nav.getStarted')}

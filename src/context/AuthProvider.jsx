@@ -59,6 +59,12 @@ export function AuthProvider({ children }) {
     return data.user
   }, [])
 
+  const startGuest = useCallback(async () => {
+    const data = await api.guest()
+    setUser(data.user)
+    return data.user
+  }, [])
+
   const login = useCallback(async (payload) => {
     const data = await api.login(payload)
     setUser(data.user)
@@ -78,8 +84,8 @@ export function AuthProvider({ children }) {
   }, [])
 
   const value = useMemo(
-    () => ({ user, loading, waking, register, login, logout, refresh }),
-    [user, loading, waking, register, login, logout, refresh],
+    () => ({ user, loading, waking, register, startGuest, login, logout, refresh }),
+    [user, loading, waking, register, startGuest, login, logout, refresh],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

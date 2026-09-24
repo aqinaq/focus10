@@ -13,6 +13,28 @@ after(async () => {
 })
 
 describe('Тіркелу', () => {
+  test('қонақ тапсырма жасап, кейін тіркелгенде дерегі сақталады', async () => {
+    const client = createClient(server.base)
+    const guest = await client.request('/api/auth/guest', { method: 'POST' })
+    assert.equal(guest.status, 201)
+    assert.equal(guest.data.user.is_guest, true)
+    assert.equal(guest.data.user.email, null)
+
+    const task = await client.request('/api/tasks', {
+      method: 'POST', body: { title: 'Қонақ тапсырмасы' },
+    })
+    assert.equal(task.status, 201)
+    const again = await client.request('/api/auth/guest', { method: 'POST' })
+    assert.equal(again.data.user.id, guest.data.user.id)
+
+    const registered = await registerUser(client)
+    assert.equal(registered.status, 201)
+    assert.equal(registered.data.user.id, guest.data.user.id)
+    assert.equal(registered.data.user.is_guest, false)
+    const tasks = await client.request('/api/tasks')
+    assert.deepEqual(tasks.data.tasks.map((item) => item.title), ['Қонақ тапсырмасы'])
+  })
+
   test('дұрыс дерекпен аккаунт құрылады және сессия беріледі', async () => {
     const client = createClient(server.base)
     const { status, data } = await registerUser(client)

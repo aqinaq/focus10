@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto'
 import { Router } from 'express'
 import { one, pool, seedWorkspace } from '../db.js'
 import {
@@ -8,6 +9,7 @@ import {
   hashPassword,
   requireAuth,
   verifyPassword,
+  userForToken,
 } from '../auth.js'
 import rateLimit from '../rateLimit.js'
 import { appUrl, mailEnabled, sendMail } from '../lib/mail.js'
@@ -21,6 +23,25 @@ const authLimit = rateLimit({ windowMs: 60_000, max: 10 })
 // Хат жіберетін маршруттар қатаңырақ: біреудің поштасын бөтен адам
 // «тазалап» тастамауы керек
 const mailLimit = rateLimit({ windowMs: 60_000, max: 4 })
+
+router.post('/guest', authLimit, async (req, res, next) => {
+  try {
+    const existing = await userForToken(req.cookies?.[COOKIE_NAME])
+    if (existing) return res.json({ user: existing })
+
+    const id = randomBytes(24).toString('hex')
+    const user = await one(
+      `INSERT INTO users (name, email, password_hash, is_guest)
+       VALUES ($1, $2, $3, true)
+       RETURNING id, name, email, is_guest`,
+      ['Guest', `guest-${id}@focus10.invalid`, randomBytes(64).toString('hex')],
+    )
+    res.cookie(COOKIE_NAME, await createSession(user.id), cookieOptions)
+    res.status(201).json({ user: { ...user, email: null, email_verified: false } })
+  } catch (error) {
+    next(error)
+  }
+})
 
 /**
  * Растау/қалпына келтіру хатын жібереді. Қате шықса, оны шақырушы шешеді:
@@ -61,13 +82,20 @@ router.post('/register', authLimit, async (req, res, next) => {
     // Бірегейлікті бөлек SELECT-пен емес, индекске сүйеніп тексереміз —
     // әйтпесе екі сұраныс арасында бәсеке пайда болады (race condition).
     let user
+    const guest = await userForToken(req.cookies?.[COOKIE_NAME])
     try {
-      user = await one(
-        `INSERT INTO users (name, email, password_hash)
-         VALUES ($1, $2, $3)
-         RETURNING id, name, email`,
-        [name, email, passwordHash],
-      )
+      user = guest?.is_guest
+        ? await one(
+            `UPDATE users SET name = $1, email = $2, password_hash = $3, is_guest = false
+             WHERE id = $4 RETURNING id, name, email`,
+            [name, email, passwordHash, guest.id],
+          )
+        : await one(
+            `INSERT INTO users (name, email, password_hash)
+             VALUES ($1, $2, $3)
+             RETURNING id, name, email`,
+            [name, email, passwordHash],
+          )
     } catch (error) {
       if (error.code === '23505') {
         return res.status(409).json({
@@ -78,7 +106,9 @@ router.post('/register', authLimit, async (req, res, next) => {
       throw error
     }
 
-    await seedWorkspace(user.id, req.lang)
+    if (!guest?.is_guest) {
+      await seedWorkspace(user.id, req.lang)
+    }
 
     // Растау хаты — тіркелудің шарты емес: пошта бапталмаса да, жетпей қалса
     // да, аккаунт бірден жұмыс істей береді. Сондықтан қатесін тек логқа
@@ -88,7 +118,7 @@ router.post('/register', authLimit, async (req, res, next) => {
     )
 
     res.cookie(COOKIE_NAME, await createSession(user.id), cookieOptions)
-    res.status(201).json({ user: { ...user, email_verified: false } })
+    res.status(201).json({ user: { ...user, is_guest: false, email_verified: false } })
   } catch (error) {
     next(error)
   }
@@ -117,6 +147,7 @@ router.post('/login', authLimit, async (req, res, next) => {
         name: row.name,
         email: row.email,
         email_verified: row.email_verified_at !== null,
+        is_guest: row.is_guest,
       },
     })
   } catch (error) {

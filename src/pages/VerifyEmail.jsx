@@ -72,7 +72,7 @@ export default function VerifyEmail() {
         {done ? t('verify.doneTitle') : t('verify.failedTitle')}
       </h1>
       <p className="mt-3 text-sm/6 text-pretty text-slate-500 dark:text-slate-400">
-        {done ? t('verify.doneBody') : (error ?? t('verify.failedBody'))}
+        {done ? t('verify.doneBody') : (error || t('verify.failedBody'))}
       </p>
 
       <Link
