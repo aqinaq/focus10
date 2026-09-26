@@ -1,8 +1,7 @@
 import Navbar from '../components/Navbar'
 import Hero from '../components/Hero'
 import Features from '../components/Features'
-import UseCases from '../components/UseCases'
-import About from '../components/About'
+import ProductProof from '../components/ProductProof'
 import CTA from '../components/CTA'
 import Footer from '../components/Footer'
 
@@ -13,8 +12,7 @@ export default function Landing() {
       <main id="main">
         <Hero />
         <Features />
-        <UseCases />
-        <About />
+        <ProductProof />
         <CTA />
       </main>
       <Footer />

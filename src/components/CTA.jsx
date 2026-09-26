@@ -7,7 +7,7 @@ export default function CTA() {
   const { t } = useI18n()
 
   return (
-    <section className="px-4 py-16 sm:px-6 sm:py-24 md:py-32 lg:px-8">
+    <section className="px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
       <div className="relative isolate mx-auto max-w-5xl overflow-hidden rounded-3xl bg-brand-600 px-6 py-14 text-center sm:px-16 sm:py-20">
         {/* фондық безендіру */}
         <div

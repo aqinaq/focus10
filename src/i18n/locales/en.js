@@ -29,10 +29,10 @@ export default {
 
   nav: {
     features: 'Features',
-    who: 'Who it is for',
-    about: 'About us',
+    proof: 'Trust',
+    engineering: 'Engineering',
     signIn: 'Sign in',
-    getStarted: 'Start without an account',
+    getStarted: 'Try live demo',
     dashboard: 'Dashboard',
     openMenu: 'Open menu',
     closeMenu: 'Close menu',
@@ -46,70 +46,81 @@ export default {
   },
 
   hero: {
-    badge: 'New: insights read out of your own weekly data',
-    titleLead: 'Focus on what',
-    titleAccent: 'matters',
-    subtitle:
-      'Focus10 is a task and timer tool for freelancers who track their own hours. Attach a task to a project, start the timer with one click, and export the week as CSV.',
-    getStarted: 'Start without an account',
-    watchDemo: 'Watch Demo',
+    badge: 'Interactive demo — sample data included',
+    title: 'Track the work. Keep the evidence.',
+    subtitle: 'Tasks, a one-click timer, weekly reports and clean CSV exports for people who bill their own time.',
+    getStarted: 'Try the live demo',
+    watchDemo: 'Take the 60-second tour',
     watchDemoAria: 'Watch the demo',
-    trust: ['No sign-up required', 'No card required', 'Export your data anytime'],
+    trust: ['No sign-up or card', 'Private guest workspace for 30 days', 'Keep the data by creating an account'],
     screenshotAlt:
       'The Focus10 dashboard: a running timer, daily and weekly totals, the task list and the weekly chart',
-    screenshotCta: 'See how it works',
     screenshotNote:
-      'A real screenshot of the app. The projects and tasks in it come from a sample account.',
-    facts: [
-      { value: '$0', label: 'Every feature is free — there is no billing yet' },
-      { value: 'CSV', label: 'Download your data whenever you want' },
-      { value: 'Postgres', label: 'Your data in a real database, exportable at any time' },
-      { value: '124 tests', label: 'The API and landing page are covered by automated tests' },
-    ],
+      'Real product screens with sample workspace data. Click for the guided tour.',
+    previews: {
+      dashboard: { label: 'Dashboard', alt: 'Focus10 dashboard with tasks and weekly totals' },
+      timer: { label: 'Running timer', alt: 'Focus10 timer running against a client task' },
+      reports: { label: 'Weekly report', alt: 'Focus10 weekly chart and project breakdown' },
+    },
   },
 
   features: {
     eyebrow: 'Features',
-    title: 'Everything you need to run the work',
-    subtitle:
-      'Nothing extra: plan it, track the time, pull the report. Everything below works today.',
+    title: 'A short path from task to report',
+    subtitle: 'Four working parts. No feature theatre.',
     items: [
       {
         title: 'One-click timer',
-        description:
-          'Hit the ▶ button next to a task and time starts recording against it. Only one timer runs at a time, so hours never double-count.',
+        description: 'Start time from a task. A second timer automatically stops the first.',
       },
       {
         title: 'Tasks and projects',
-        description:
-          'Attach a task to a project and filter by status or project. Rename it without leaving the list; finishing a task stops its timer automatically.',
+        description: 'Organize work, filter the list and edit without leaving the dashboard.',
       },
       {
         title: 'Reports and CSV',
-        description:
-          'The weekly chart and the per-project split are built from real data. Export 7 days, 30 days or your whole history to CSV and send it to a client.',
+        description: 'See the weekly split, then export 7 days, 30 days or all history.',
       },
       {
-        title: 'A plan for the day you actually have',
-        description:
-          'Say how much time today is really yours — all of it, or twenty minutes — and the app picks what to work on and for how long. What does not fit moves to the coming days instead of piling onto tonight.',
-      },
-      {
-        title: 'Insights from your own data',
-        description:
-          'The dashboard reads the last 28 days back to you: the three hours you actually focus best, your streak, how this week compares to the last, and how much of your work ends inside ten minutes.',
-      },
-      {
-        title: 'You can get your account back',
-        description:
-          'Confirm your email once and a forgotten password is a link away. Reset links are single-use, expire in an hour and sign every other device out.',
-      },
-      {
-        title: 'Your data is yours',
-        description:
-          'Passwords are hashed with scrypt and sessions live in an httpOnly cookie. Download your data at any time, or delete your account together with everything in it.',
+        title: 'A realistic daily plan',
+        description: 'Give it today’s available minutes; it prioritizes work without overfilling the day.',
       },
     ],
+  },
+
+  proof: {
+    eyebrow: 'Under the hood',
+    title: 'Specifics you can verify',
+    subtitle: 'How accounts are protected, what the tests exercise, and what leaves the product when you export.',
+    security: {
+      title: 'Authentication and recovery',
+      items: [
+        'Passwords use scrypt with a random salt and timing-safe verification.',
+        'A random server-side session token lives in a secure, httpOnly, SameSite=Lax cookie and expires after 30 days.',
+        'Recovery links expire in one hour, work once, reveal no account existence, and revoke every active session after reset.',
+      ],
+    },
+    tests: {
+      title: 'Test strategy, not a vanity count',
+      intro: 'The suite checks behavior at the boundary where failures matter:',
+      layers: [
+        { title: 'Logic', body: 'Planner rules, dates, localization and CSV escaping.' },
+        { title: 'API + Postgres', body: 'Auth, isolation, races, timers and reports against real Postgres.' },
+        { title: 'Browser journeys', body: 'Guest demo, sign-up, timer, manual time, settings and legal pages.' },
+      ],
+    },
+    csv: {
+      title: 'The export is inspectable',
+      body: 'RFC 4180, UTF-8 with BOM, localized headers and safe quoting for commas and quotes.',
+      download: 'Sample CSV',
+      sample: 'Date,Start,End,Project,Task,Hours\n2026-09-21,09:00,10:25,Client website,Homepage design,1.42\n2026-09-22,14:00,15:30,"Internal, operations","Document the ""handoff"" flow",1.50',
+    },
+    engineering: {
+      eyebrow: 'Hardest engineering problem',
+      title: 'Making “one running timer” true under concurrency',
+      body: 'Two tabs can start different tasks at the same instant. The start operation uses a Postgres advisory transaction lock per user, stops the old entry, inserts the new one, and keeps a partial unique index as the final invariant. The last request wins without double-counted time or retry storms.',
+      link: 'Inspect the implementation',
+    },
   },
 
   about: {
@@ -168,10 +179,9 @@ export default {
   },
 
   cta: {
-    title: 'Get your focus back, starting today',
-    subtitle:
-      'Free to sign up, no card required. Create an account in two minutes and start your first timer.',
-    button: 'Start without an account',
+    title: 'Try it before you trust it',
+    subtitle: 'Open a sample workspace now. Sign up only if you want to keep it.',
+    button: 'Open the live demo',
   },
 
   footer: {
@@ -184,7 +194,7 @@ export default {
     stack: [
       'React 19 + Vite + Tailwind CSS',
       'Express 5 + Postgres (node-postgres)',
-      '124 automated tests cover the product',
+      'Logic, API, database and browser tests',
     ],
     plannedNote: 'Not built yet — nothing here is clickable.',
     planned: ['PDF reports', 'Invoicing', 'Team mode', 'Calendar sync'],
@@ -193,7 +203,11 @@ export default {
 
   legal: {
     eyebrow: 'Legal',
-    effective: 'Effective September 16, 2026',
+    effective: 'Effective and last updated September 26, 2026',
+    contactTitle: 'Operator and contact',
+    contactBody: 'Focus10 is an independently operated, open-source service maintained through the linked repository. Use a public issue for general questions; use a private security advisory for account, privacy, or vulnerability details. Never post personal data in a public issue.',
+    generalContact: 'General questions',
+    privateContact: 'Private report',
     privacy: {
       title: 'Privacy Policy',
       intro: 'Focus10 collects only the information needed to run the task and time-tracking service. This policy explains what is stored and what choices you have.',
@@ -207,8 +221,8 @@ export default {
           ],
         },
         {
-          title: 'How we use it',
-          body: 'We use this information to provide the service, calculate reports and insights, secure accounts, send verification or recovery messages, and troubleshoot reliability problems. Focus10 does not sell personal data or use it for targeted advertising.',
+          title: 'Purpose and legal basis',
+          body: 'Account and workspace data is processed to provide the service you request. Security and operational data is processed to prevent abuse and keep the service reliable. Messages are sent to verify an address or fulfill a recovery request. Where consent or another basis is required by applicable law, that basis will be requested. Focus10 does not sell personal data or use it for targeted advertising.',
         },
         {
           title: 'Cookies and local storage',
@@ -216,15 +230,23 @@ export default {
         },
         {
           title: 'Service providers',
-          body: 'Hosting, database, and transactional-email providers may process data only as needed to operate Focus10. Their own terms and privacy obligations also apply.',
+          body: 'Hosting, Postgres database, and transactional-email providers process data only as needed to operate Focus10. They may process information in another country and are selected subject to contractual and legal safeguards available for the deployment.',
         },
         {
           title: 'Retention and your choices',
-          body: 'You can export tracked time as CSV and delete your account from Settings. Account deletion removes the account and its projects, tasks, plans, sessions, and time entries. Short-lived security logs and backups may remain temporarily where technically necessary.',
+          body: 'Guest workspaces and sessions expire after 30 days. Registered data remains until you delete the account or the service must remove it. Account deletion removes the account and its projects, tasks, plans, sessions, tokens, and time entries. Short-lived logs and backups may remain temporarily where technically necessary.',
+        },
+        {
+          title: 'Access, correction, export, and deletion',
+          body: 'You can review and correct workspace data in the product, export completed time entries as CSV, and delete the account in Settings. Depending on applicable law, you may also ask for access, correction, restriction, objection, portability, or deletion through the private contact above. You may complain to your local data-protection authority.',
+        },
+        {
+          title: 'Security and children',
+          body: 'Focus10 uses access controls, hashed passwords, revocable sessions, rate limits, and transport security, but no online service can guarantee absolute security. The service is not directed to children under 16 and should not be used by anyone who cannot legally consent to this processing.',
         },
         {
           title: 'Questions and changes',
-          body: 'For privacy questions, use the public project repository linked from the home page. Material policy changes will be reflected here with a new effective date.',
+          body: 'Use the private contact above for requests containing personal information. Material policy changes will be shown here with a new effective date; continued use after the effective date means the revised policy applies.',
         },
       ],
     },
@@ -234,7 +256,11 @@ export default {
       sections: [
         {
           title: 'The service',
-          body: 'Focus10 provides task management, time tracking, planning, reports, and data export. The service is currently offered without a paid subscription and may change as the product develops.',
+          body: 'Focus10 provides task management, time tracking, planning, reports, and data export. It is currently free, with no billing system. Features, limits, or availability may change; material changes will be described before they take effect where practical.',
+        },
+        {
+          title: 'Eligibility',
+          body: 'You must be at least 16 and legally able to accept these terms. If you use Focus10 for an organization, you confirm that you have authority to bind it.',
         },
         {
           title: 'Your account',
@@ -246,7 +272,11 @@ export default {
         },
         {
           title: 'Your data',
-          body: 'You retain ownership of the information you enter. You give Focus10 permission to store and process it only as necessary to operate and improve the service. You can export time records or delete the account from Settings.',
+          body: 'You retain ownership of what you enter and grant Focus10 a limited permission to host, process, and display it only to operate and secure the service. You are responsible for having the right to upload that information. You can export time records or delete the account from Settings.',
+        },
+        {
+          title: 'Software and feedback',
+          body: 'The Focus10 name, interface, and service remain the operator’s property, subject to any open-source license covering published code. If you provide feedback, Focus10 may use it without payment or obligation to implement it.',
         },
         {
           title: 'Availability and warranties',
@@ -259,6 +289,10 @@ export default {
         {
           title: 'Termination and changes',
           body: 'You may stop using Focus10 and delete your account at any time. Access may be restricted for abuse or security risks. Material term changes will be published here with an updated effective date.',
+        },
+        {
+          title: 'Disputes and general terms',
+          body: 'Applicable law and any mandatory consumer protections govern these terms. Before filing a claim, please use the contact above and allow a reasonable opportunity to resolve it. If one provision is unenforceable, the remaining provisions continue. These terms and the Privacy Policy are the entire agreement for the service.',
         },
       ],
     },

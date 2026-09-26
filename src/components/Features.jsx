@@ -3,22 +3,19 @@ import {
   ListChecks,
   BarChart3,
   Sparkles,
-  KeyRound,
-  ShieldCheck,
-  Download,
 } from 'lucide-react'
 import { useI18n } from '../i18n/i18nContext'
 
 // Тек шынымен жұмыс істеп тұрған мүмкіндіктер. Жоспардағылар — футердегі
 // «Жоспарда» бағанында бөлек көрсетілген.
 // Мәтіні аудармада, мұнда тек реті мен таңбашасы.
-const icons = [Timer, ListChecks, BarChart3, Sparkles, KeyRound, ShieldCheck, Download]
+const icons = [Timer, ListChecks, BarChart3, Sparkles]
 
 export default function Features() {
   const { t } = useI18n()
 
   return (
-    <section id="features" className="bg-slate-50 py-16 sm:py-24 md:py-32 dark:bg-slate-950">
+    <section id="features" className="bg-slate-50 py-16 sm:py-20 dark:bg-slate-950">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-sm font-semibold tracking-wide text-brand-600 uppercase dark:text-brand-400">
@@ -32,7 +29,7 @@ export default function Features() {
           </p>
         </div>
 
-        <div className="mx-auto mt-12 grid max-w-2xl grid-cols-1 gap-5 sm:mt-20 sm:gap-6 lg:max-w-none lg:grid-cols-2">
+        <div className="mx-auto mt-10 grid max-w-2xl grid-cols-1 gap-5 sm:grid-cols-2 lg:max-w-none">
           {t('features.items').map((feature, index) => {
             const Icon = icons[index]
 

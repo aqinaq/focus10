@@ -1,142 +1,104 @@
-import { ArrowRight, Play, Sparkles, Check } from 'lucide-react'
+import { ArrowRight, Play, Check, MousePointer2 } from 'lucide-react'
 import { useUI } from '../context/uiContext'
 import { useI18n } from '../i18n/i18nContext'
 import { useNavigate } from 'react-router-dom'
+
+const previews = [
+  { key: 'dashboard', src: '/app-dashboard.png', classes: 'col-span-3 aspect-[16/8]' },
+  { key: 'timer', src: '/app-timer.png', classes: 'col-span-2 aspect-[16/5]', position: '100% 50%' },
+  { key: 'reports', src: '/app-reports.png', classes: 'col-span-1 aspect-square' },
+]
 
 export default function Hero() {
   const { openSignup, openDemo } = useUI()
   const { t } = useI18n()
   const navigate = useNavigate()
 
-  // Ойдан шығарылған клиент логотиптері мен «12 000+ қолданушы» деген сан
-  // орнына — бәрі де тексеруге болатын нақты фактілер.
-  const facts = t('hero.facts')
-  // Сынақ мерзімі де, жазылым да жоқ — сондықтан «14 күн тегін» немесе
-  // «кез келген уақытта бас тарт» деп жаза алмаймыз.
-  const trust = t('hero.trust')
-
   return (
     <section id="top" className="relative isolate overflow-hidden">
-      {/* фондық жұмсақ сәуле */}
       <div
         aria-hidden="true"
         className="glow pointer-events-none absolute -top-40 left-1/2 -z-10 h-[36rem] w-[64rem] -translate-x-1/2 opacity-[0.07] dark:opacity-[0.16]"
       />
 
-      <div className="mx-auto max-w-7xl px-4 pt-12 pb-20 sm:px-6 sm:pt-24 sm:pb-32 lg:px-8">
-        <div className="mx-auto max-w-3xl text-center">
-          <a
-            href="#features"
-            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs text-balance text-slate-600 shadow-sm transition-colors hover:border-brand-200 hover:text-slate-900 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:border-brand-800 dark:hover:text-slate-100 sm:py-1.5 sm:text-sm"
-          >
-            <Sparkles className="size-4 shrink-0 text-brand-600 dark:text-brand-400" />
-            <span>{t('hero.badge')}</span>
-            <ArrowRight className="size-4 shrink-0" />
-          </a>
+      <div className="mx-auto max-w-7xl px-4 pt-10 pb-14 sm:px-6 sm:pt-14 sm:pb-20 lg:px-8">
+        <div className="grid items-center gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:gap-12">
+          <div className="max-w-xl">
+            <p className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-3 py-1.5 text-xs font-semibold text-brand-700 dark:border-brand-800 dark:bg-brand-950 dark:text-brand-300">
+              <MousePointer2 className="size-3.5" />
+              {t('hero.badge')}
+            </p>
 
-          <h1 className="mt-6 text-4xl font-semibold tracking-tight text-balance text-slate-900 sm:mt-8 sm:text-5xl dark:text-slate-100 md:text-6xl lg:text-7xl">
-            {t('hero.titleLead')}{' '}
-            <span className="relative whitespace-nowrap text-brand-600 dark:text-brand-400">
-              {t('hero.titleAccent')}
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 200 12"
-                preserveAspectRatio="none"
-                className="absolute -bottom-1 left-0 h-2.5 w-full fill-brand-200 dark:fill-brand-800"
+            <h1 className="mt-5 text-4xl font-semibold tracking-tight text-balance text-slate-900 sm:text-5xl lg:text-6xl dark:text-slate-100">
+              {t('hero.title')}
+            </h1>
+            <p className="mt-5 max-w-lg text-base/7 text-pretty text-slate-600 sm:text-lg/8 dark:text-slate-400">
+              {t('hero.subtitle')}
+            </p>
+
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                onClick={() => navigate('/app')}
+                className="group inline-flex items-center justify-center gap-2 rounded-full bg-brand-600 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-brand-600/20 transition-colors hover:bg-brand-700"
               >
-                <path d="M0 8c40-6 160-6 200 0v4H0z" />
-              </svg>
-            </span>
-          </h1>
-
-          <p className="mx-auto mt-6 max-w-2xl text-base text-pretty text-slate-600 sm:mt-8 sm:text-xl dark:text-slate-400">
-            {t('hero.subtitle')}
-          </p>
-
-          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:mt-10 sm:flex-row sm:gap-4">
-            <button
-              type="button"
-              onClick={() => navigate('/app')}
-              className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-brand-600 px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-brand-600/20 transition-colors hover:bg-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 sm:w-auto"
-            >
-              {t('hero.getStarted')}
-              <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-            </button>
+                {t('hero.getStarted')}
+                <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+              </button>
+              <button
+                type="button"
+                onClick={openDemo}
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-6 py-3.5 text-sm font-semibold text-slate-900 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+              >
+                <Play className="size-4 fill-current" />
+                {t('hero.watchDemo')}
+              </button>
+            </div>
             <button
               type="button"
               onClick={openSignup}
-              className="text-sm font-medium text-brand-700 underline dark:text-brand-300"
+              className="mt-4 text-sm font-medium text-brand-700 underline underline-offset-4 dark:text-brand-300"
             >
               {t('guest.createAccount')}
             </button>
-            <button
-              type="button"
-              onClick={openDemo}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-7 py-3.5 text-base font-semibold text-slate-900 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800 sm:w-auto"
-            >
-              <Play className="size-4 fill-current" />
-              {t('hero.watchDemo')}
-            </button>
+
+            <ul className="mt-6 space-y-2 text-sm text-slate-500 dark:text-slate-400">
+              {t('hero.trust').map((item) => (
+                <li key={item} className="flex items-center gap-2">
+                  <Check className="size-4 text-brand-600 dark:text-brand-400" strokeWidth={3} />
+                  {item}
+                </li>
+              ))}
+            </ul>
           </div>
 
-          <ul className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-slate-500 dark:text-slate-400">
-            {trust.map((item) => (
-              <li key={item} className="flex items-center gap-1.5">
-                <Check className="size-4 text-brand-600 dark:text-brand-400" strokeWidth={3} />
-                {item}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Өнім скриншоты */}
-        <div className="relative mt-12 sm:mt-20">
-          <div
-            aria-hidden="true"
-            className="absolute inset-x-8 top-8 -z-10 h-full rounded-3xl bg-brand-600/10 blur-2xl"
-          />
-          {/* Салынған макет емес — жұмыс істеп тұрған қолданбадан алынған
-              нағыз экран суреті. */}
           <button
             type="button"
             onClick={openDemo}
             aria-label={t('hero.watchDemoAria')}
-            className="group block w-full cursor-pointer text-left"
+            className="group grid grid-cols-3 gap-3 text-left"
           >
-            <span className="relative block overflow-hidden rounded-2xl border border-slate-200 shadow-2xl shadow-slate-900/10 dark:border-slate-800">
-              <img
-                src="/app-dashboard.png"
-                width={2720}
-                height={1640}
-                alt={t('hero.screenshotAlt')}
-                className="block w-full"
-              />
-              <span className="absolute inset-0 flex items-center justify-center bg-slate-900/0 opacity-0 transition-all group-hover:bg-slate-900/10 group-hover:opacity-100">
-                <span className="flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow-lg dark:bg-slate-900 dark:text-slate-100">
-                  <Play className="size-4 fill-current" />
-                  {t('hero.screenshotCta')}
+            {previews.map((preview) => (
+              <span
+                key={preview.key}
+                className={`relative overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-xl shadow-slate-900/10 dark:border-slate-800 dark:bg-slate-900 ${preview.classes}`}
+              >
+                <img
+                  src={preview.src}
+                  alt={t(`hero.previews.${preview.key}.alt`)}
+                  className="absolute inset-0 size-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                  style={{ objectPosition: preview.position ?? '50% 50%' }}
+                />
+                <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/80 to-transparent px-4 pt-10 pb-3 text-sm font-semibold text-white">
+                  {t(`hero.previews.${preview.key}.label`)}
                 </span>
               </span>
+            ))}
+            <span className="col-span-3 text-center text-xs text-slate-400 dark:text-slate-500">
+              {t('hero.screenshotNote')}
             </span>
           </button>
-          <p className="mt-4 text-center text-xs text-slate-400 dark:text-slate-500">
-            {t('hero.screenshotNote')}
-          </p>
         </div>
-
-        {/* Нақты фактілер */}
-        <dl className="mx-auto mt-12 grid max-w-4xl grid-cols-2 gap-x-6 gap-y-8 sm:mt-20 sm:gap-8 lg:grid-cols-4">
-          {facts.map((fact) => (
-            <div key={fact.value} className="text-center">
-              <dt className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-slate-100">
-                {fact.value}
-              </dt>
-              <dd className="mt-2 text-sm text-pretty text-slate-500 dark:text-slate-400">
-                {fact.label}
-              </dd>
-            </div>
-          ))}
-        </dl>
       </div>
     </section>
   )

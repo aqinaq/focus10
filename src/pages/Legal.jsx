@@ -28,6 +28,15 @@ export default function LegalPage({ kind }) {
         <p className="mt-3 text-sm text-slate-400 dark:text-slate-500">{t('legal.effective')}</p>
         <p className="mt-6 text-base/7 text-slate-600 dark:text-slate-400">{document.intro}</p>
 
+        <aside className="mt-8 rounded-2xl border border-brand-200 bg-brand-50 p-5 dark:border-brand-900 dark:bg-brand-950/40">
+          <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">{t('legal.contactTitle')}</h2>
+          <p className="mt-2 text-sm/6 text-slate-600 dark:text-slate-400">{t('legal.contactBody')}</p>
+          <div className="mt-3 flex flex-wrap gap-4 text-sm font-semibold">
+            <a href="https://github.com/aqinaq/focus10/issues" target="_blank" rel="noreferrer" className="text-brand-700 hover:text-brand-800 dark:text-brand-300">{t('legal.generalContact')}</a>
+            <a href="https://github.com/aqinaq/focus10/security/advisories/new" target="_blank" rel="noreferrer" className="text-brand-700 hover:text-brand-800 dark:text-brand-300">{t('legal.privateContact')}</a>
+          </div>
+        </aside>
+
         <div className="mt-10 space-y-9">
           {document.sections.map((section) => (
             <section key={section.title}>

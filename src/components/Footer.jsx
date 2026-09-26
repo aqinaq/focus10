@@ -10,8 +10,8 @@ import ThemeSwitcher from './ThemeSwitcher'
 // Қазір тек шынымен бар нәрсе қалды.
 const pageLinks = [
   { key: 'nav.features', href: '#features' },
-  { key: 'nav.who', href: '#who' },
-  { key: 'nav.about', href: '#about' },
+  { key: 'nav.proof', href: '#proof' },
+  { key: 'nav.engineering', href: '#engineering' },
 ]
 
 export default function Footer() {
